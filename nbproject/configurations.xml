@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="95">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="HeaderFiles"
+                   displayName="Header Files"
+                   projectFiles="true">
+      <itemPath>Button.hpp</itemPath>
+      <itemPath>ChildProgram.hpp</itemPath>
+      <itemPath>Frontend.hpp</itemPath>
+      <itemPath>Id3TagParser.hpp</itemPath>
+      <itemPath>Mp3Player.hpp</itemPath>
+      <itemPath>Mp3Title.hpp</itemPath>
+      <itemPath>OneButtonPlaybackController.hpp</itemPath>
+      <itemPath>PlaybackController.hpp</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Resource Files"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="SourceFiles"
+                   displayName="Source Files"
+                   projectFiles="true">
+      <itemPath>Button.cpp</itemPath>
+      <itemPath>ChildProgram.cpp</itemPath>
+      <itemPath>Frontend.cpp</itemPath>
+      <itemPath>Id3TagParser.cpp</itemPath>
+      <itemPath>Mp3Player.cpp</itemPath>
+      <itemPath>Mp3Title.cpp</itemPath>
+      <itemPath>OneButtonPlaybackController.cpp</itemPath>
+      <itemPath>PlaybackController.cpp</itemPath>
+      <itemPath>main.cpp</itemPath>
+    </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Debug" type="1">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <ccTool>
+          <standard>8</standard>
+        </ccTool>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerLibLibItem>boost_system</linkerLibLibItem>
+            <linkerLibLibItem>boost_filesystem</linkerLibLibItem>
+            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+      <item path="Button.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Button.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="ChildProgram.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="ChildProgram.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Frontend.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Frontend.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Id3TagParser.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Id3TagParser.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Mp3Player.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Mp3Player.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Mp3Title.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Mp3Title.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="OneButtonPlaybackController.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="OneButtonPlaybackController.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="PlaybackController.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="PlaybackController.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="main.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Release" type="1">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <standard>8</standard>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+        </asmTool>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerLibLibItem>boost_system</linkerLibLibItem>
+            <linkerLibLibItem>boost_filesystem</linkerLibLibItem>
+            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+      <item path="Button.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Button.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="ChildProgram.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="ChildProgram.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Frontend.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Frontend.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Id3TagParser.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Id3TagParser.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Mp3Player.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Mp3Player.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Mp3Title.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="Mp3Title.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="OneButtonPlaybackController.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="OneButtonPlaybackController.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="PlaybackController.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="PlaybackController.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="main.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+    </conf>
+    <conf name="WiringPi" type="1">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <standard>8</standard>
+          <preprocessorList>
+            <Elem>USE_WIRING_PI</Elem>
+          </preprocessorList>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+        </asmTool>
+        <linkerTool>
+          <linkerLibItems>
+            <linkerLibLibItem>boost_system</linkerLibLibItem>
+            <linkerLibLibItem>boost_filesystem</linkerLibLibItem>
+            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
+            <linkerLibLibItem>wiringPi</linkerLibLibItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+      <item path="Button.cpp" ex="false" tool="1" flavor2="8">
+      </item>
+      <item path="Button.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="ChildProgram.cpp" ex="false" tool="1" flavor2="8">
+      </item>
+      <item path="ChildProgram.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Frontend.cpp" ex="false" tool="1" flavor2="8">
+      </item>
+      <item path="Frontend.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Id3TagParser.cpp" ex="false" tool="1" flavor2="8">
+      </item>
+      <item path="Id3TagParser.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Mp3Player.cpp" ex="false" tool="1" flavor2="8">
+      </item>
+      <item path="Mp3Player.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Mp3Title.cpp" ex="false" tool="1" flavor2="8">
+      </item>
+      <item path="Mp3Title.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="OneButtonPlaybackController.cpp" ex="false" tool="1" flavor2="8">
+      </item>
+      <item path="OneButtonPlaybackController.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="PlaybackController.cpp" ex="false" tool="1" flavor2="8">
+      </item>
+      <item path="PlaybackController.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="main.cpp" ex="false" tool="1" flavor2="8">
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>
