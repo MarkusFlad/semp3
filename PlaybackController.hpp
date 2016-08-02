@@ -2,6 +2,7 @@
 #define	PLAYBACK_CONTROLLER_HPP
 
 #include "Mp3Player.hpp"
+#include <boost/optional.hpp>
 #include <boost/filesystem/path.hpp>
 #include <vector>
 #include <map>
@@ -35,21 +36,50 @@ public:
      */
     PlaybackController (const Path& albumsPath, Mp3Player& mp3Player);
     /**
+     * Start the playback of the current album title and frame if at least one
+     * valid MP3 album has been found in the albums path that has been given to
+     * the playback controller in the constructor.
+     * @return True if there is at least one directory in the albums path where
+     *         at least one .mp3 file has been found. Else if there is no
+     *         MP3 album at the MP3 albums path given in the constructor. If
+     *         true is returned the MP3 player starts playing a title, if false
+     *         no MP3 title is played. In case false is returned the
+     *         methods next and back have no effect. */
+    bool resume();
+    /**
      * If a title is currently played the play back is stopped. If the
      * play back is already stopped the title is continued.
      */
     void pause();
     /**
      * Play the next title.
+     * @return True if the command could be performed. False if not (
+     *         e.g because resume() has not been called at least one time).
      */
-    void next();
+    bool next();
     /**
      * If 30 seconds of the title have been already played the play back of
      * this title is started at the beginning. If less than 30 seconds have
      * been played the play back of the previous title is started (in case of
      * the first title of the album just the first title is restarted).
+     * @return True if the command could be performed. False if not (
+     *         e.g because resume() has not been called at least one time).
      */
-    void back();
+    bool back();
+    /**
+     * Stop playing the current album and resume playing album number n.
+     * This means the album n is started at the same position where it has been
+     * stopped the last time is was playing (considering title and frame).
+     * If there is no album at the given position the album before or after the
+     * not existing album number are stared. In the worst case the playback of
+     * the current album just continues.
+     * @param n The number of the album to be played relative to the current
+     *          album. A positive number starts playing an album after the
+     *          current one, a negative number starts playing an album before
+     *          the current one. Nothing happens when zero is given to the
+     *          method.
+     */
+    void jumpToAlbum (int n);
     /**
      * Play the first title of the next album. Select the next album to be the
      * current album.
@@ -155,6 +185,14 @@ protected:
      */
     void setCurrentTitlePosition (int frameCount);
     /**
+     * Helper method to get the path of the current mp3 title and the position
+     * within this title for the given album directory.
+     * @param album The path to the album directory.
+     * @return The path of the current mp3 title file. None if there is not
+     *         album at the given path.
+     */
+    boost::optional<TitlePosition> getCurrentTitlePosition (const Path& album);
+    /**
      * Update the content of the current title file with the current title
      * position.
      */
@@ -175,16 +213,6 @@ protected:
      */
     static Path getCurrentTitleFile (
             const Path& album);
-    /**
-     * Helper method to get the path of the current mp3 title and the position
-     * within this title for the given album directory.
-     * @param album The path to the album directory.
-     * @param mp3Files The content of the album directory.
-     * @return The path of the current mp3 title file.
-     */
-    static TitlePosition getCurrentTitlePosition (
-            const Path& album,
-            const DirectoryList& mp3Files);
 private:
     const Path& _albumsPath;
     Mp3Player& _mp3Player;
@@ -192,7 +220,7 @@ private:
     DirectoryList _albums;
     std::map<Path, DirectoryList> _albumMap;
     Path _currentAlbum;
-    TitlePosition _currentTitlePosition;
+    boost::optional<TitlePosition> _currentTitlePosition;
     float _secondsPlayed;
     bool _presentingAlbums;
 };

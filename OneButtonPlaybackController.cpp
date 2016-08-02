@@ -20,6 +20,9 @@ OneButtonPlaybackController::OneButtonPlaybackController (
 , _veryLongPressDuration (veryLongPressDuration) {
     _button.addListener(&_buttonListener);
 }
+bool OneButtonPlaybackController::resume() {
+    return _playbackController.resume();
+}
 void OneButtonPlaybackController::setCurrentButtonPosition (
     Button::Position currentPosition) {
     _button.setCurrentPosition(currentPosition);

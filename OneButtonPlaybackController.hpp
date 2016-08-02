@@ -49,6 +49,12 @@ public:
             const TimeDuration& longPressDuration = Seconds (1),
             const TimeDuration& veryLongPressDuration = Seconds (10));
     /**
+     * Play the current album, title and frame if the given albums-path is
+     * valid.
+     * @see PlaybackController#play
+     */
+    bool resume();
+    /**
      * Tell the play back controller the current position of the button.
      * Note that an anti-chatter mechanism is implemented. If the method is
      * called with a high frequency only the last call is used for controlling
