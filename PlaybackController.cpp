@@ -22,7 +22,6 @@ using std::endl;
 using std::cout;
 using std::istringstream;
 using boost::optional;
-using boost::none;
 using boost::filesystem::path;
 using boost::filesystem::directory_iterator;
 using boost::filesystem::exists;
@@ -37,15 +36,12 @@ PlaybackController::PlaybackController (const path& albumsPath,
 : _albumsPath (albumsPath)
 , _mp3Player (mp3Player)
 , _mp3PlayerListener (*this, 100 /* Frames until storing the title position */)
-, _currentTitlePosition (none)
+, _albumMap (getAlbumMap(albumsPath))
+, _currentTitlePosition (boost::none)
 , _secondsPlayed (0.0)
 , _presentingAlbums (false) {
-    for (auto itAF = directory_iterator(albumsPath); itAF != directory_iterator();
-         ++itAF) {
-        const path& file = *itAF;
-        if (is_directory(file)) {
-            _albums.push_back(file);
-        }
+    for (auto albumMapping : _albumMap) {
+        _albums.push_back (albumMapping.first);
     }
     sort (_albums.begin(), _albums.end());
     path currentAlbumFile = getCurrentAlbumFile(albumsPath);
@@ -54,17 +50,6 @@ PlaybackController::PlaybackController (const path& albumsPath,
     getline (icaf, line);
     _currentAlbum = line;
     icaf.close();
-    for (auto album : _albums) {
-        DirectoryList& mp3Files = _albumMap[album];
-        for (auto itFile = directory_iterator(album);
-             itFile != directory_iterator(); ++itFile) {
-            const path& file = *itFile;
-            if (file.extension() == ".mp3") {
-                mp3Files.push_back(file);
-            }
-        }
-        sort (mp3Files.begin(), mp3Files.end());
-    }
     if (!exists (_currentAlbum)) {
         DirectoryList::const_iterator albumsBegin = _albums.begin();
         if (albumsBegin != _albums.end()) {
@@ -105,14 +90,14 @@ optional<PlaybackController::TitlePosition> PlaybackController::
     if (!exists (titlePosition.getTitle())) {
         map<path, DirectoryList>::const_iterator itMap = _albumMap.find(album);
         if (itMap == _albumMap.end()) {
-            return none;
+            return boost::none;
         }
         const DirectoryList& mp3Files = itMap->second;
         DirectoryList::const_iterator mp3FilesBegin = mp3Files.begin();
         if (mp3FilesBegin != mp3Files.end()) {
             return optional<TitlePosition> (TitlePosition (*mp3FilesBegin, 0));
         } else {
-            return none;
+            return boost::none;
         }
     }
     return titlePosition;
@@ -136,6 +121,26 @@ path PlaybackController::getCurrentTitleFile (const path& album) {
     path currentTitleFile = album;
     currentTitleFile /= "current-title.cfg";
     return currentTitleFile;
+}
+map<path, vector<path>> PlaybackController::getAlbumMap(const Path& albums) {
+    map<path, vector<path>> albumMap;
+    for (auto itAF = directory_iterator(albums); itAF != directory_iterator();
+         ++itAF) {
+        const path& file = *itAF;
+        if (is_directory(file)) {
+            map<Path, DirectoryList> nextAlbumMap = getAlbumMap(file);
+            albumMap.insert(nextAlbumMap.begin(), nextAlbumMap.end());
+        } else if (file.extension() == ".mp3") {
+            DirectoryList& mp3Files = albumMap[albums];
+            mp3Files.push_back(file);
+        }
+    }
+    map<Path, DirectoryList>::iterator itFound = albumMap.find(albums);
+    if (itFound != albumMap.end()) {
+        DirectoryList& mp3Files = itFound->second;
+        sort (mp3Files.begin(), mp3Files.end());
+    }
+    return albumMap;
 }
 bool PlaybackController::resume() {
     _currentTitlePosition = getCurrentTitlePosition (_currentAlbum);
@@ -191,16 +196,16 @@ bool PlaybackController::back() {
     return false;
 }
 void PlaybackController::jumpToAlbum (int n) {
-    auto itCurrent = find (_albums.begin(), _albums.end(), _currentAlbum);
+    auto itCurrent = _albums.begin();
     if (n > 0) {
-        auto distanceToEnd = distance (itCurrent, _albums.end());
-        advance (itCurrent, min<int> (distanceToEnd, n));
-    } else {
-        auto distanceToBegin = distance (itCurrent, _albums.begin());
-        advance (itCurrent, max<int> (distanceToBegin, n));
+        advance (itCurrent, min<int> (_albums.size() - 1, n - 1));
     }
     if (itCurrent != _albums.end()) {
         _currentAlbum = *itCurrent;
+        path currentAlbumFile = getCurrentAlbumFile (_albumsPath);
+        ofstream ocff (currentAlbumFile.string());
+        ocff << _currentAlbum.string() << endl;
+        ocff.close();
         resume();
     }
 }

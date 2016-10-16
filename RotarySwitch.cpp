@@ -1,4 +1,4 @@
-#include "Button.hpp"
+#include "RotarySwitch.hpp"
 #include <boost/bind.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/placeholders.hpp>
@@ -19,14 +19,15 @@ using boost::posix_time::microsec_clock;
 using boost::posix_time::milliseconds;
 using boost::posix_time::time_duration;
 
-Button::Button (const time_duration& samplingCycle, io_service& ioService)
+RotarySwitch::RotarySwitch (const time_duration& samplingCycle,
+                            io_service& ioService)
 : _samplingTimer(ioService)
 , _samplingCycle (samplingCycle)
 , _positionUpdateTime(microsec_clock::local_time())
-, _currentPosition (Position::RELEASED)
-, _position (Position::RELEASED) {
+, _currentPosition (Position(1))
+, _position (Position(1)) {
 }
-void Button::setCurrentPosition (Position currentPosition) {
+void RotarySwitch::setCurrentPosition (Position currentPosition) {
     lock_guard<mutex> lock (_mutex);
     if (currentPosition == _currentPosition) {
         return;
@@ -37,33 +38,26 @@ void Button::setCurrentPosition (Position currentPosition) {
     if (timeSinceLastCall < _samplingCycle) {
         time_duration timeToWait = _samplingCycle - timeSinceLastCall;
         _samplingTimer.expires_from_now (timeToWait);
-        _samplingTimer.async_wait(bind(&Button::handleSampling, this, error));
+        _samplingTimer.async_wait(bind(&RotarySwitch::handleSampling, this, error));
     } else {
         _position = _currentPosition;
-        if (_position == Position::PRESSED) {
-            for (IListener* listener : _listeners) {
-                listener->buttonPressed (*this);
-            }
-        } else {
-            time_duration pressTime = tNow - _positionUpdateTime;
-            for (IListener* listener : _listeners) {
-                listener->buttonReleased (*this, pressTime);
-            }
+        for (IListener* listener : _listeners) {
+            listener->positionChanged(currentPosition);
         }
         _positionUpdateTime = tNow;
     }
 }
-Button::Position Button::getPosition() const {
+RotarySwitch::Position RotarySwitch::getPosition() const {
     lock_guard<mutex> lock (_mutex);
     return _position;
 }
-void Button::addListener (IListener* listener) {
+void RotarySwitch::addListener (IListener* listener) {
     _listeners.push_back(listener);
 }
-void Button::handleSampling (const boost::system::error_code& error) {
+void RotarySwitch::handleSampling (const boost::system::error_code& error) {
     if (!error) {
         setCurrentPosition (_currentPosition);
     } else {
-        cerr << "Error in Button::handleSampling() - " << error << endl;
+        cerr << "Error in RotarySwitch::handleSampling() - " << error << endl;
     }
 }

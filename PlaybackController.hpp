@@ -73,11 +73,8 @@ public:
      * If there is no album at the given position the album before or after the
      * not existing album number are stared. In the worst case the playback of
      * the current album just continues.
-     * @param n The number of the album to be played relative to the current
-     *          album. A positive number starts playing an album after the
-     *          current one, a negative number starts playing an album before
-     *          the current one. Nothing happens when zero is given to the
-     *          method.
+     * @param n The number of the album to be played relative to the first
+     *          album.
      */
     void jumpToAlbum (int n);
     /**
@@ -211,8 +208,17 @@ protected:
      * @param album The path to the album directory.
      * @return The path of the current title file.
      */
-    static Path getCurrentTitleFile (
-            const Path& album);
+    static Path getCurrentTitleFile (const Path& album);
+    /**
+     * Recursively go through the given albums path and return all valid
+     * album directories mapped to the list of their mp3 files. A valid album
+     * directory contains at least one mp3 file.
+     * @param albums The path to look for valid mp3 files or album
+     *               sub-directories. This means the albums path itself may
+     *               also be an album path.
+     * @return List of valid album directories.
+     */
+    static std::map<Path, DirectoryList> getAlbumMap(const Path& albums);
 private:
     const Path& _albumsPath;
     Mp3Player& _mp3Player;
