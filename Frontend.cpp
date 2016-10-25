@@ -63,13 +63,13 @@ Frontend::Frontend(ThreeControlsPlaybackController& playbackController)
         pullUpDnControl (pin, PUD_DOWN);
         wiringPiISR (pin, INT_EDGE_FALLING,&Frontend::onRotarySwitchPosition);
     }
-    wiringPiISR (GpioPin::GPIO_17, INT_EDGE_RISING,
+    wiringPiISR (getWiringPiPin (GpioPin::GPIO_17), INT_EDGE_RISING,
             &Frontend::onButton1Pressed);
-    wiringPiISR (GpioPin::GPIO_17, INT_EDGE_FALLING,
+    wiringPiISR (getWiringPiPin (GpioPin::GPIO_17), INT_EDGE_FALLING,
             &Frontend::onButton1Released);
-    wiringPiISR (GpioPin::GPIO_18, INT_EDGE_RISING,
+    wiringPiISR (getWiringPiPin (GpioPin::GPIO_18), INT_EDGE_RISING,
             &Frontend::onButton2Pressed);
-    wiringPiISR (GpioPin::GPIO_18, INT_EDGE_FALLING,
+    wiringPiISR (getWiringPiPin (GpioPin::GPIO_18), INT_EDGE_FALLING,
             &Frontend::onButton2Released);
 #endif
 }
