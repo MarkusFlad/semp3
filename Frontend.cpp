@@ -144,29 +144,29 @@ void Frontend::onButton2Released() {
 }
 void Frontend::onRotarySwitchPosition() {
 #ifdef USE_WIRING_PI
-    if (getGpioPin (GpioPin::GPIO_2) == HIGH) {
+    if (digitalRead(getWiringPiPin (GpioPin::GPIO_2)) == HIGH) {
         _currentRotarySwitchPosition = RotarySwitch::Position(1);
-    } else if (getGpioPin (GpioPin::GPIO_3) == HIGH) {
+    } else if (digitalRead (getWiringPiPin (GpioPin::GPIO_3)) == HIGH) {
         _currentRotarySwitchPosition = RotarySwitch::Position(2);
-    } else if (getGpioPin (GpioPin::GPIO_4) == HIGH) {
+    } else if (digitalRead (getWiringPiPin (GpioPin::GPIO_4)) == HIGH) {
         _currentRotarySwitchPosition = RotarySwitch::Position(3);
-    } else if (getGpioPin (GpioPin::GPIO_5) == HIGH) {
+    } else if (digitalRead (getWiringPiPin (GpioPin::GPIO_5)) == HIGH) {
         _currentRotarySwitchPosition = RotarySwitch::Position(4);
-    } else if (getGpioPin (GpioPin::GPIO_6) == HIGH) {
+    } else if (digitalRead (getWiringPiPin (GpioPin::GPIO_6)) == HIGH) {
         _currentRotarySwitchPosition = RotarySwitch::Position(5);
-    } else if (getGpioPin (GpioPin::GPIO_7) == HIGH) {
+    } else if (digitalRead (getWiringPiPin (GpioPin::GPIO_7)) == HIGH) {
         _currentRotarySwitchPosition = RotarySwitch::Position(6);
-    } else if (getGpioPin (GpioPin::GPIO_8) == HIGH) {
+    } else if (digitalRead (getWiringPiPin (GpioPin::GPIO_8)) == HIGH) {
         _currentRotarySwitchPosition = RotarySwitch::Position(7);
-    } else if (getGpioPin (GpioPin::GPIO_9) == HIGH) {
+    } else if (digitalRead (getWiringPiPin (GpioPin::GPIO_9)) == HIGH) {
         _currentRotarySwitchPosition = RotarySwitch::Position(8);
-    } else if (getGpioPin (GpioPin::GPIO_10) == HIGH) {
+    } else if (digitalRead (getWiringPiPin (GpioPin::GPIO_10)) == HIGH) {
         _currentRotarySwitchPosition = RotarySwitch::Position(9);
-    } else if (getGpioPin (GpioPin::GPIO_11) == HIGH) {
+    } else if (digitalRead (getWiringPiPin (GpioPin::GPIO_11)) == HIGH) {
         _currentRotarySwitchPosition = RotarySwitch::Position(10);
-    } else if (getGpioPin (GpioPin::GPIO_12) == HIGH) {
+    } else if (digitalRead (getWiringPiPin (GpioPin::GPIO_12)) == HIGH) {
         _currentRotarySwitchPosition = RotarySwitch::Position(11);
-    } else if (getGpioPin (GpioPin::GPIO_13) == HIGH) {
+    } else if (digitalRead (getWiringPiPin (GpioPin::GPIO_13)) == HIGH) {
         _currentRotarySwitchPosition = RotarySwitch::Position(12);
     }
 #endif
