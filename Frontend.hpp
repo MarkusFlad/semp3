@@ -46,11 +46,12 @@ protected:
     static void onButton1Released();
     static void onButton2Pressed();
     static void onButton2Released();
-    static void onRotarySwtichPosition(RotarySwitch::Position position);
+    static void onRotarySwitchPosition();
 private:
     static std::shared_ptr<Frontend> _instance;
     ThreeControlsPlaybackController& _playbackController;
     std::thread _keyboardPollingThread;
+    static RotarySwitch::Position _currentRotarySwitchPosition;
 };
 
 #endif	/* FRONTEND_HPP */
