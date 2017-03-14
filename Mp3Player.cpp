@@ -32,7 +32,7 @@ using boost::system::error_code;
 Mp3Player::Mp3Player(const std::string& executable,
         io_service& ioService)
 : _waitForId3TagsTimer (ioService)
-, _mpg123Program (executable, vector<string>{"-R"}, ioService)
+, _mpg123Program (executable, vector<string>{"-m", "-R"}, ioService)
 , _in (_mpg123Program.in())
 , _out(_mpg123Program.out())
 , _err(_mpg123Program.err()) {
