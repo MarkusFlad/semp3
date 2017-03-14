@@ -40,12 +40,12 @@ int main(int argc, char** argv) {
     Mp3Player mp3Player ("/usr/bin/mpg123", ioService);
     ThreeControlsPlaybackController playbackController (albums, mp3Player,
                                                     ioService);
+    shared_ptr<Frontend> frontend = Frontend::create (playbackController);
     if (!playbackController.resume()) {
         cerr << "Given albums-directory contains no valid album-directory."
              << endl;
         return EXIT_FAILURE;
     }
-    shared_ptr<Frontend> frontend = Frontend::create (playbackController);
     ioService.run();
     return EXIT_SUCCESS;
 }
