@@ -11,6 +11,8 @@
       <itemPath>Mp3Player.hpp</itemPath>
       <itemPath>Mp3Title.hpp</itemPath>
       <itemPath>PlaybackController.hpp</itemPath>
+      <itemPath>RebootSafeString.h</itemPath>
+      <itemPath>RebootSafeString.hpp</itemPath>
       <itemPath>RotarySwitch.hpp</itemPath>
       <itemPath>ThreeControlsPlaybackController.hpp</itemPath>
     </logicalFolder>
@@ -28,6 +30,7 @@
       <itemPath>Mp3Player.cpp</itemPath>
       <itemPath>Mp3Title.cpp</itemPath>
       <itemPath>PlaybackController.cpp</itemPath>
+      <itemPath>RebootSafeString.cpp</itemPath>
       <itemPath>RotarySwitch.cpp</itemPath>
       <itemPath>ThreeControlsPlaybackController.cpp</itemPath>
       <itemPath>main.cpp</itemPath>
@@ -91,6 +94,10 @@
       <item path="PlaybackController.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="PlaybackController.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="RebootSafeString.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="RebootSafeString.hpp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="RotarySwitch.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -164,6 +171,12 @@
       <item path="PlaybackController.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="PlaybackController.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="RebootSafeString.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="RebootSafeString.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="RebootSafeString.hpp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="RotarySwitch.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -241,6 +254,12 @@
       <item path="PlaybackController.cpp" ex="false" tool="1" flavor2="8">
       </item>
       <item path="PlaybackController.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="RebootSafeString.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="RebootSafeString.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="RebootSafeString.hpp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="RotarySwitch.cpp" ex="false" tool="1" flavor2="8">
       </item>

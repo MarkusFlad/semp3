@@ -42,6 +42,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/Mp3Player.o \
 	${OBJECTDIR}/Mp3Title.o \
 	${OBJECTDIR}/PlaybackController.o \
+	${OBJECTDIR}/RebootSafeString.o \
 	${OBJECTDIR}/RotarySwitch.o \
 	${OBJECTDIR}/ThreeControlsPlaybackController.o \
 	${OBJECTDIR}/main.o
@@ -105,6 +106,11 @@ ${OBJECTDIR}/PlaybackController.o: PlaybackController.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -DUSE_WIRING_PI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/PlaybackController.o PlaybackController.cpp
+
+${OBJECTDIR}/RebootSafeString.o: RebootSafeString.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -DUSE_WIRING_PI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/RebootSafeString.o RebootSafeString.cpp
 
 ${OBJECTDIR}/RotarySwitch.o: RotarySwitch.cpp 
 	${MKDIR} -p ${OBJECTDIR}

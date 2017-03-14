@@ -16,11 +16,10 @@ using std::advance;
 using std::map;
 using std::find;
 using std::sort;
-using std::ifstream;
-using std::ofstream;
 using std::endl;
 using std::cout;
 using std::istringstream;
+using std::ostringstream;
 using boost::optional;
 using boost::filesystem::path;
 using boost::filesystem::directory_iterator;
@@ -31,6 +30,9 @@ using boost::system::error_code;
 //==============================================================================
 //-------------------------- PlaybackController --------------------------------
 //==============================================================================
+const string PlaybackController::CURRENT_ALBUM_FILENAME ("current-album.cfg");
+const string PlaybackController::CURRENT_TITLE_FILENAME ("current-title.cfg");
+
 PlaybackController::PlaybackController (const path& albumsPath,
         Mp3Player& mp3Player)
 : _albumsPath (albumsPath)
@@ -44,12 +46,8 @@ PlaybackController::PlaybackController (const path& albumsPath,
         _albums.push_back (albumMapping.first);
     }
     sort (_albums.begin(), _albums.end());
-    path currentAlbumFile = getCurrentAlbumFile(albumsPath);
-    ifstream icaf (currentAlbumFile.string());
-    string line;
-    getline (icaf, line);
-    _currentAlbum = line;
-    icaf.close();
+    _currentAlbumInfo = RebootSafeString (albumsPath, CURRENT_ALBUM_FILENAME);
+    _currentAlbum = _currentAlbumInfo.getValue();
     if (!exists (_currentAlbum)) {
         DirectoryList::const_iterator albumsBegin = _albums.begin();
         if (albumsBegin != _albums.end()) {
@@ -76,16 +74,15 @@ void PlaybackController::setCurrentTitlePosition (int frameCount) {
 }
 optional<PlaybackController::TitlePosition> PlaybackController::
         getCurrentTitlePosition (const Path& album) {
-    path currentTitleFile = getCurrentTitleFile (album);
-    ifstream ictf (currentTitleFile.string());
+    _currentTitleInfo = RebootSafeString(album, CURRENT_TITLE_FILENAME);
+    istringstream iss (_currentTitleInfo.getValue());
     string frameCountLine;
-    getline (ictf, frameCountLine);
+    getline (iss, frameCountLine);
     istringstream issFrameCount (frameCountLine);
     int frameCount;
     issFrameCount >> frameCount;
     string title;
-    getline (ictf, title);
-    ictf.close();
+    getline (iss, title);
     const TitlePosition titlePosition (path(title), frameCount);
     if (!exists (titlePosition.getTitle())) {
         map<path, DirectoryList>::const_iterator itMap = _albumMap.find(album);
@@ -103,24 +100,17 @@ optional<PlaybackController::TitlePosition> PlaybackController::
     return titlePosition;
 }
 void PlaybackController::updateCurrentTitleFile () {
-    path currentTitleFile = getCurrentTitleFile (_currentAlbum);
-    ofstream ocff (currentTitleFile.string());
+    if (!_currentTitleInfo.isValid()) {
+        _currentTitleInfo = RebootSafeString(_currentAlbum,
+                CURRENT_TITLE_FILENAME);
+    }
+    ostringstream ost;
     if (_currentTitlePosition) {
         TitlePosition currentTitlePosition = _currentTitlePosition.get();
-        ocff << currentTitlePosition.getFrameCount() << endl;
-        ocff << currentTitlePosition.getTitle().string() << endl;
-        ocff.close();
+        ost << currentTitlePosition.getFrameCount() << endl;
+        ost << currentTitlePosition.getTitle().string() << endl;
+        _currentTitleInfo = RebootSafeString(_currentTitleInfo, ost.str());
     }
-}
-path PlaybackController::getCurrentAlbumFile (const path& albums) {
-    path currentAlbumFile = albums;
-    currentAlbumFile /= "current-album.cfg";
-    return currentAlbumFile;
-}
-path PlaybackController::getCurrentTitleFile (const path& album) {
-    path currentTitleFile = album;
-    currentTitleFile /= "current-title.cfg";
-    return currentTitleFile;
 }
 map<path, vector<path>> PlaybackController::getAlbumMap(const Path& albums) {
     map<path, vector<path>> albumMap;
@@ -202,10 +192,8 @@ void PlaybackController::jumpToAlbum (int n) {
     }
     if (itCurrent != _albums.end()) {
         _currentAlbum = *itCurrent;
-        path currentAlbumFile = getCurrentAlbumFile (_albumsPath);
-        ofstream ocff (currentAlbumFile.string());
-        ocff << _currentAlbum.string() << endl;
-        ocff.close();
+        _currentAlbumInfo = RebootSafeString (_currentAlbumInfo,
+                                              _currentAlbum.string());
         resume();
     }
 }
@@ -235,10 +223,7 @@ void PlaybackController::presentNextAlbum() {
     }
     const path& firstTitleInAlbum = *(mp3Files.begin());
     _mp3Player.load (firstTitleInAlbum);
-    path currentAlbumFile = getCurrentAlbumFile (_albumsPath);
-    ofstream ocff (currentAlbumFile.string());
-    ocff << currentAlbum.string() << endl;
-    ocff.close();
+    _currentAlbumInfo = RebootSafeString (_currentAlbumInfo, currentAlbum.string());
     _currentAlbum = currentAlbum;
 }
 void PlaybackController::resumeAlbum() {

@@ -2,6 +2,7 @@
 #define	PLAYBACK_CONTROLLER_HPP
 
 #include "Mp3Player.hpp"
+#include "RebootSafeString.hpp"
 #include <boost/optional.hpp>
 #include <boost/filesystem/path.hpp>
 #include <vector>
@@ -195,21 +196,6 @@ protected:
      */
     void updateCurrentTitleFile ();
     /**
-     * Helper method to get the path of the current album file for the given
-     * albums directory.
-     * @param albums The path to the directory with all album sub-directories.
-     * @return The path of the current album file.
-     */
-    static Path getCurrentAlbumFile (
-            const Path& albums);
-    /**
-     * Helper method to get the path of the current title file for the given
-     * album directory.
-     * @param album The path to the album directory.
-     * @return The path of the current title file.
-     */
-    static Path getCurrentTitleFile (const Path& album);
-    /**
      * Recursively go through the given albums path and return all valid
      * album directories mapped to the list of their mp3 files. A valid album
      * directory contains at least one mp3 file.
@@ -229,6 +215,10 @@ private:
     boost::optional<TitlePosition> _currentTitlePosition;
     float _secondsPlayed;
     bool _presentingAlbums;
+    RebootSafeString _currentAlbumInfo;
+    RebootSafeString _currentTitleInfo;
+    static const std::string CURRENT_ALBUM_FILENAME;
+    static const std::string CURRENT_TITLE_FILENAME;
 };
 
 #endif	/* PLAYBACK_CONTROLLER_HPP */
