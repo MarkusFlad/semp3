@@ -22,6 +22,8 @@ using std::shared_ptr;
 
 std::shared_ptr<Frontend> Frontend::_instance;
 RotarySwitch::Position Frontend::_currentRotarySwitchPosition(1);
+bool Frontend::_keyboardButton1Pressed = false;
+bool Frontend::_keyboardButton2Pressed = false;
 
 shared_ptr<Frontend> Frontend::create(
         ThreeControlsPlaybackController& playbackController) {
@@ -85,22 +87,20 @@ void Frontend::pollKeyboard() {
         int c = getchar();
         switch (c) {
             case 'j':
-                if (button1Pressed) {
-                    onButton1Released();
-                    button1Pressed = false;
+                if (_keyboardButton1Pressed) {
+                    _keyboardButton1Pressed = false;
                 } else {
-                    onButton1Pressed();
-                    button1Pressed = true;
+                    _keyboardButton1Pressed = true;
                 }
+                onButton1();
                 break;
             case 'k':
-                if (button2Pressed) {
-                    onButton2Released();
-                    button2Pressed = false;
+                if (_keyboardButton2Pressed) {
+                    _keyboardButton2Pressed = false;
                 } else {
-                    onButton2Pressed();
-                    button2Pressed = true;
+                    _keyboardButton2Pressed = true;
                 }
+                onButton2();
                 break;
             case '1':
             case '2':
@@ -128,43 +128,29 @@ void Frontend::pollKeyboard() {
 }
 void Frontend::onButton1() {
 #ifndef USE_WIRING_PI
+    if (_keyboardButton1Pressed) {
 #else
     if (digitalRead(getWiringPiPin (GpioPin::GPIO_0)) == HIGH) {
+#endif
         _instance->_playbackController.setCurrentButton1Position(
             Button::Position::PRESSED);
     } else {
         _instance->_playbackController.setCurrentButton1Position(
             Button::Position::RELEASED);
     }
-#endif
-}
-void Frontend::onButton1Pressed() {
-    _instance->_playbackController.setCurrentButton1Position(
-        Button::Position::PRESSED);
-}
-void Frontend::onButton1Released() {
-    _instance->_playbackController.setCurrentButton1Position(
-        Button::Position::RELEASED);
 }
 void Frontend::onButton2() {
 #ifndef USE_WIRING_PI
+    if (_keyboardButton2Pressed) {
 #else
     if (digitalRead(getWiringPiPin (GpioPin::GPIO_1)) == HIGH) {
+#endif
         _instance->_playbackController.setCurrentButton2Position(
             Button::Position::PRESSED);
     } else {
         _instance->_playbackController.setCurrentButton2Position(
             Button::Position::RELEASED);
     }
-#endif
-}
-void Frontend::onButton2Pressed() {
-    _instance->_playbackController.setCurrentButton2Position(
-        Button::Position::PRESSED);
-}
-void Frontend::onButton2Released() {
-    _instance->_playbackController.setCurrentButton2Position(
-        Button::Position::RELEASED);
 }
 void Frontend::onRotarySwitchPosition() {
 #ifdef USE_WIRING_PI

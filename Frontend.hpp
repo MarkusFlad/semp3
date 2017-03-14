@@ -43,17 +43,17 @@ protected:
     Frontend (ThreeControlsPlaybackController& playbackController);
     static void pollKeyboard();
     static void onButton1();
-    static void onButton1Pressed();
-    static void onButton1Released();
     static void onButton2();
-    static void onButton2Pressed();
-    static void onButton2Released();
     static void onRotarySwitchPosition();
 private:
     static std::shared_ptr<Frontend> _instance;
     ThreeControlsPlaybackController& _playbackController;
     std::thread _keyboardPollingThread;
     static RotarySwitch::Position _currentRotarySwitchPosition;
+#ifndef USE_WIRING_PI
+    static bool _keyboardButton1Pressed;
+    static bool _keyboardButton2Pressed;
+#endif
 };
 
 #endif	/* FRONTEND_HPP */
