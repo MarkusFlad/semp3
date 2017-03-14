@@ -42,8 +42,10 @@ public:
 protected:
     Frontend (ThreeControlsPlaybackController& playbackController);
     static void pollKeyboard();
+    static void onButton1();
     static void onButton1Pressed();
     static void onButton1Released();
+    static void onButton2();
     static void onButton2Pressed();
     static void onButton2Released();
     static void onRotarySwitchPosition();

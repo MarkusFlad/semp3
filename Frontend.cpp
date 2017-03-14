@@ -17,7 +17,6 @@
 #include <array>
 
 using std::cerr;
-using std::cout;
 using std::endl;
 using std::shared_ptr;
 
@@ -43,7 +42,7 @@ Frontend::Frontend(ThreeControlsPlaybackController& playbackController)
 : _playbackController (playbackController)
 , _keyboardPollingThread (&Frontend::pollKeyboard) {
 #ifdef USE_WIRING_PI
-    const std::array<GpioPin,26> ROTARY_SWITCH_GPIO_PINS = {
+    const std::array<GpioPin,12> ROTARY_SWITCH_GPIO_PINS = {
         GpioPin::GPIO_2,
         GpioPin::GPIO_3,
         GpioPin::GPIO_4,
@@ -62,16 +61,16 @@ Frontend::Frontend(ThreeControlsPlaybackController& playbackController)
         int pin = getWiringPiPin(gpioPin);
         pinMode (pin, INPUT);
         pullUpDnControl (pin, PUD_DOWN);
-        wiringPiISR (pin, INT_EDGE_FALLING,&Frontend::onRotarySwitchPosition);
+        wiringPiISR (pin, INT_EDGE_RISING,&Frontend::onRotarySwitchPosition);
     }
-    wiringPiISR (getWiringPiPin (GpioPin::GPIO_0), INT_EDGE_RISING,
-            &Frontend::onButton1Pressed);
-    wiringPiISR (getWiringPiPin (GpioPin::GPIO_0), INT_EDGE_FALLING,
-            &Frontend::onButton1Released);
-    wiringPiISR (getWiringPiPin (GpioPin::GPIO_1), INT_EDGE_RISING,
-            &Frontend::onButton2Pressed);
-    wiringPiISR (getWiringPiPin (GpioPin::GPIO_1), INT_EDGE_FALLING,
-            &Frontend::onButton2Released);
+    int pin0 = getWiringPiPin(GpioPin::GPIO_0);
+    pullUpDnControl (pin0, PUD_DOWN);
+    wiringPiISR (pin0, INT_EDGE_BOTH,
+            &Frontend::onButton1);
+    int pin1 = getWiringPiPin(GpioPin::GPIO_1);
+    pullUpDnControl (pin1, PUD_DOWN);
+    wiringPiISR (pin1, INT_EDGE_BOTH,
+            &Frontend::onButton2);
 #endif
 }
 void Frontend::pollKeyboard() {
@@ -127,6 +126,18 @@ void Frontend::pollKeyboard() {
     }
 #endif    
 }
+void Frontend::onButton1() {
+#ifndef USE_WIRING_PI
+#else
+    if (digitalRead(getWiringPiPin (GpioPin::GPIO_0)) == HIGH) {
+        _instance->_playbackController.setCurrentButton1Position(
+            Button::Position::PRESSED);
+    } else {
+        _instance->_playbackController.setCurrentButton1Position(
+            Button::Position::RELEASED);
+    }
+#endif
+}
 void Frontend::onButton1Pressed() {
     _instance->_playbackController.setCurrentButton1Position(
         Button::Position::PRESSED);
@@ -134,6 +145,18 @@ void Frontend::onButton1Pressed() {
 void Frontend::onButton1Released() {
     _instance->_playbackController.setCurrentButton1Position(
         Button::Position::RELEASED);
+}
+void Frontend::onButton2() {
+#ifndef USE_WIRING_PI
+#else
+    if (digitalRead(getWiringPiPin (GpioPin::GPIO_1)) == HIGH) {
+        _instance->_playbackController.setCurrentButton2Position(
+            Button::Position::PRESSED);
+    } else {
+        _instance->_playbackController.setCurrentButton2Position(
+            Button::Position::RELEASED);
+    }
+#endif
 }
 void Frontend::onButton2Pressed() {
     _instance->_playbackController.setCurrentButton2Position(
@@ -145,33 +168,59 @@ void Frontend::onButton2Released() {
 }
 void Frontend::onRotarySwitchPosition() {
 #ifdef USE_WIRING_PI
+    int numberOfPositions = 0;
     if (digitalRead(getWiringPiPin (GpioPin::GPIO_2)) == HIGH) {
         _currentRotarySwitchPosition = RotarySwitch::Position(1);
-    } else if (digitalRead (getWiringPiPin (GpioPin::GPIO_3)) == HIGH) {
+        numberOfPositions++;
+    }
+    if (digitalRead (getWiringPiPin (GpioPin::GPIO_3)) == HIGH) {
         _currentRotarySwitchPosition = RotarySwitch::Position(2);
-    } else if (digitalRead (getWiringPiPin (GpioPin::GPIO_4)) == HIGH) {
+        numberOfPositions++;
+    }
+    if (digitalRead (getWiringPiPin (GpioPin::GPIO_4)) == HIGH) {
         _currentRotarySwitchPosition = RotarySwitch::Position(3);
-    } else if (digitalRead (getWiringPiPin (GpioPin::GPIO_5)) == HIGH) {
+        numberOfPositions++;
+    }
+    if (digitalRead (getWiringPiPin (GpioPin::GPIO_5)) == HIGH) {
         _currentRotarySwitchPosition = RotarySwitch::Position(4);
-    } else if (digitalRead (getWiringPiPin (GpioPin::GPIO_6)) == HIGH) {
+        numberOfPositions++;
+    }
+    if (digitalRead (getWiringPiPin (GpioPin::GPIO_6)) == HIGH) {
         _currentRotarySwitchPosition = RotarySwitch::Position(5);
-    } else if (digitalRead (getWiringPiPin (GpioPin::GPIO_7)) == HIGH) {
+        numberOfPositions++;
+    }
+    if (digitalRead (getWiringPiPin (GpioPin::GPIO_7)) == HIGH) {
         _currentRotarySwitchPosition = RotarySwitch::Position(6);
-    } else if (digitalRead (getWiringPiPin (GpioPin::GPIO_21)) == HIGH) {
+        numberOfPositions++;
+    }
+    if (digitalRead (getWiringPiPin (GpioPin::GPIO_21)) == HIGH) {
         _currentRotarySwitchPosition = RotarySwitch::Position(7);
-    } else if (digitalRead (getWiringPiPin (GpioPin::GPIO_22)) == HIGH) {
+        numberOfPositions++;
+    }
+    if (digitalRead (getWiringPiPin (GpioPin::GPIO_22)) == HIGH) {
         _currentRotarySwitchPosition = RotarySwitch::Position(8);
-    } else if (digitalRead (getWiringPiPin (GpioPin::GPIO_23)) == HIGH) {
+        numberOfPositions++;
+    }
+    if (digitalRead (getWiringPiPin (GpioPin::GPIO_23)) == HIGH) {
         _currentRotarySwitchPosition = RotarySwitch::Position(9);
-    } else if (digitalRead (getWiringPiPin (GpioPin::GPIO_24)) == HIGH) {
+        numberOfPositions++;
+    }
+    if (digitalRead (getWiringPiPin (GpioPin::GPIO_24)) == HIGH) {
         _currentRotarySwitchPosition = RotarySwitch::Position(10);
-    } else if (digitalRead (getWiringPiPin (GpioPin::GPIO_25)) == HIGH) {
+        numberOfPositions++;
+    }
+    if (digitalRead (getWiringPiPin (GpioPin::GPIO_25)) == HIGH) {
         _currentRotarySwitchPosition = RotarySwitch::Position(11);
-    } else if (digitalRead (getWiringPiPin (GpioPin::GPIO_26)) == HIGH) {
+        numberOfPositions++;
+    }
+    if (digitalRead (getWiringPiPin (GpioPin::GPIO_26)) == HIGH) {
         _currentRotarySwitchPosition = RotarySwitch::Position(12);
+        numberOfPositions++;
+    }
+    if (numberOfPositions > 1) {
+        cerr << "WiringPi interrupt. Several GPIOs of the rotary switch are set." << endl;
     }
 #endif
-    cout << "Rotary Switch Position is " << _currentRotarySwitchPosition.getValue() << endl;
     _instance->_playbackController.setCurrentRotarySwitchPosition(
         _currentRotarySwitchPosition);
 }
