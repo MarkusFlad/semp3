@@ -6,7 +6,7 @@
  */
 
 #include "Mp3Player.hpp"
-#include "OneButtonPlaybackController.hpp"
+#include "ThreeControlsPlaybackController.hpp"
 #include "Frontend.hpp"
 #include <boost/asio/io_service.hpp>
 #include <boost/filesystem/path.hpp>
@@ -38,8 +38,13 @@ int main(int argc, char** argv) {
     }
     boost::asio::io_service ioService;
     Mp3Player mp3Player ("/usr/bin/mpg123", ioService);
-    OneButtonPlaybackController playbackController (albums, mp3Player,
+    ThreeControlsPlaybackController playbackController (albums, mp3Player,
                                                     ioService);
+    if (!playbackController.resume()) {
+        cerr << "Given albums-directory contains no valid album-directory."
+             << endl;
+        return EXIT_FAILURE;
+    }
     shared_ptr<Frontend> frontend = Frontend::create (playbackController);
     ioService.run();
     return EXIT_SUCCESS;

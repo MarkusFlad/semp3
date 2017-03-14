@@ -41,8 +41,9 @@ OBJECTFILES= \
 	${OBJECTDIR}/Id3TagParser.o \
 	${OBJECTDIR}/Mp3Player.o \
 	${OBJECTDIR}/Mp3Title.o \
-	${OBJECTDIR}/OneButtonPlaybackController.o \
 	${OBJECTDIR}/PlaybackController.o \
+	${OBJECTDIR}/RotarySwitch.o \
+	${OBJECTDIR}/ThreeControlsPlaybackController.o \
 	${OBJECTDIR}/main.o
 
 
@@ -100,15 +101,20 @@ ${OBJECTDIR}/Mp3Title.o: Mp3Title.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -DUSE_WIRING_PI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Mp3Title.o Mp3Title.cpp
 
-${OBJECTDIR}/OneButtonPlaybackController.o: OneButtonPlaybackController.cpp 
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -DUSE_WIRING_PI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/OneButtonPlaybackController.o OneButtonPlaybackController.cpp
-
 ${OBJECTDIR}/PlaybackController.o: PlaybackController.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -DUSE_WIRING_PI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/PlaybackController.o PlaybackController.cpp
+
+${OBJECTDIR}/RotarySwitch.o: RotarySwitch.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -DUSE_WIRING_PI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/RotarySwitch.o RotarySwitch.cpp
+
+${OBJECTDIR}/ThreeControlsPlaybackController.o: ThreeControlsPlaybackController.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -DUSE_WIRING_PI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/ThreeControlsPlaybackController.o ThreeControlsPlaybackController.cpp
 
 ${OBJECTDIR}/main.o: main.cpp 
 	${MKDIR} -p ${OBJECTDIR}

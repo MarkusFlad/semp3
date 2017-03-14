@@ -10,8 +10,9 @@
       <itemPath>Id3TagParser.hpp</itemPath>
       <itemPath>Mp3Player.hpp</itemPath>
       <itemPath>Mp3Title.hpp</itemPath>
-      <itemPath>OneButtonPlaybackController.hpp</itemPath>
       <itemPath>PlaybackController.hpp</itemPath>
+      <itemPath>RotarySwitch.hpp</itemPath>
+      <itemPath>ThreeControlsPlaybackController.hpp</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -26,8 +27,9 @@
       <itemPath>Id3TagParser.cpp</itemPath>
       <itemPath>Mp3Player.cpp</itemPath>
       <itemPath>Mp3Title.cpp</itemPath>
-      <itemPath>OneButtonPlaybackController.cpp</itemPath>
       <itemPath>PlaybackController.cpp</itemPath>
+      <itemPath>RotarySwitch.cpp</itemPath>
+      <itemPath>ThreeControlsPlaybackController.cpp</itemPath>
       <itemPath>main.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
@@ -86,13 +88,23 @@
       </item>
       <item path="Mp3Title.hpp" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="OneButtonPlaybackController.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="OneButtonPlaybackController.hpp" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="PlaybackController.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="PlaybackController.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="RotarySwitch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="RotarySwitch.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="ThreeControlsPlaybackController.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="ThreeControlsPlaybackController.hpp"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -149,13 +161,23 @@
       </item>
       <item path="Mp3Title.hpp" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="OneButtonPlaybackController.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="OneButtonPlaybackController.hpp" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="PlaybackController.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="PlaybackController.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="RotarySwitch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="RotarySwitch.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="ThreeControlsPlaybackController.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="ThreeControlsPlaybackController.hpp"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -216,13 +238,23 @@
       </item>
       <item path="Mp3Title.hpp" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="OneButtonPlaybackController.cpp" ex="false" tool="1" flavor2="8">
-      </item>
-      <item path="OneButtonPlaybackController.hpp" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="PlaybackController.cpp" ex="false" tool="1" flavor2="8">
       </item>
       <item path="PlaybackController.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="RotarySwitch.cpp" ex="false" tool="1" flavor2="8">
+      </item>
+      <item path="RotarySwitch.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="ThreeControlsPlaybackController.cpp"
+            ex="false"
+            tool="1"
+            flavor2="8">
+      </item>
+      <item path="ThreeControlsPlaybackController.hpp"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="8">
       </item>

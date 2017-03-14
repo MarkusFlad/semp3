@@ -8,17 +8,22 @@
 #ifndef FRONTEND_HPP
 #define	FRONTEND_HPP
 
+#include "RotarySwitch.hpp"
 #include <thread>
 #include <exception>
 #include <memory>
 
-class OneButtonPlaybackController;
+class ThreeControlsPlaybackController;
 
 /**
  * Class that encapsulates the front-end which operates the playback controller.
- * On the raspberry pi this is the single button. On desktop systems this is
- * the emulated single button (key 'p' for press down button and any other key
- * for release the button.
+ * On the raspberry pi this are two buttons button and a rotary switch with
+ * 12 positions. On desktop systems this is emulated: Button 1 is defined to
+ * be pressed down if key 'j' has been pressed, Button s is defined to be
+ * pressed down if key 'k' has been pressed. If the same key is pressed again
+ * the corresponding button is defined to be not pressed.
+ * The switch is simply emulated by the key '1'..'9' for rotary switch position
+ * 1 .. 9 and key 'a'..'c' represent switch position 10 .. 12.
  */
 class Frontend {
 public:
@@ -29,20 +34,26 @@ public:
      * @return Pointer to the Frontend singelton.
      */
     static std::shared_ptr<Frontend> create(
-        OneButtonPlaybackController& playbackController);
+            ThreeControlsPlaybackController& playbackController);
     /**
      * Destructor.
      */
     ~Frontend();
 protected:
-    Frontend (OneButtonPlaybackController& playbackController);
+    Frontend (ThreeControlsPlaybackController& playbackController);
     static void pollKeyboard();
-    static void onButtonPressed();
-    static void onButtonReleased();
+    static void onButton1();
+    static void onButton2();
+    static void onRotarySwitchPosition();
 private:
     static std::shared_ptr<Frontend> _instance;
-    OneButtonPlaybackController& _playbackController;
+    ThreeControlsPlaybackController& _playbackController;
     std::thread _keyboardPollingThread;
+    static RotarySwitch::Position _currentRotarySwitchPosition;
+#ifndef USE_WIRING_PI
+    static bool _keyboardButton1Pressed;
+    static bool _keyboardButton2Pressed;
+#endif
 };
 
 #endif	/* FRONTEND_HPP */
