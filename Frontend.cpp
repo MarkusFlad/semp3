@@ -31,6 +31,13 @@ shared_ptr<Frontend> Frontend::create(
         ThreeControlsPlaybackController& playbackController) {
     if (!_instance) {
         _instance.reset (new Frontend(playbackController));
+#ifdef USE_WIRING_PI
+        // Use the current rotary switch position for the album to be selected.
+        // Note that this makes the current-album.cfg file redundant when the
+        // real rotary switch is used. However it is still nice for logging
+        // purposes.
+        onRotarySwitchPosition();
+#endif    
     }
     return _instance;
 }
@@ -67,11 +74,6 @@ Frontend::Frontend(ThreeControlsPlaybackController& playbackController)
         pullUpDnControl (pin, PUD_DOWN);
         wiringPiISR (pin, INT_EDGE_RISING,&Frontend::onRotarySwitchPosition);
     }
-    // Use the current rotary switch position for the album to be selected.
-    // Note that this makes the current-album.cfg file redundant when the
-    // real rotary switch is used. However it is still nice for logging
-    // purposes.
-    onRotarySwitchPosition();
     int pin0 = getWiringPiPin(GpioPin::GPIO_0);
     pullUpDnControl (pin0, PUD_DOWN);
     wiringPiISR (pin0, INT_EDGE_BOTH,
