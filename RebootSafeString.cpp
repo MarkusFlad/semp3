@@ -62,12 +62,13 @@ RebootSafeString::RebootSafeString(const RebootSafeString& oldString,
                  (oldString._serialNumber + 1))
 , _value (value) {
     if (_serialNumber != 0) {
-        ofstream stream;
+        string prefix = EVEN_PREFIX;
         if (_serialNumber % 2) {
-            stream = getOutputStream(ODD_PREFIX);
-        } else {
-            stream = getOutputStream(EVEN_PREFIX);
+            prefix = ODD_PREFIX;
         }
+        path fileName (_parentPath);
+        fileName /= prefix + _baseFileName;
+        ofstream stream (fileName.c_str());
         stream << _value;
         stream << '\n';
         stream << '<';
@@ -89,20 +90,10 @@ string RebootSafeString::getBaseFileName() const {
 string RebootSafeString::getValue() const {
     return _value;
 }
-ifstream RebootSafeString::getInputStream (const string& prefix) const {
+int RebootSafeString::getSerialNumber (const string& prefix) const {
     path fileName (_parentPath);
     fileName /= prefix + _baseFileName;
     ifstream stream (fileName.c_str());
-    return stream;
-}
-ofstream RebootSafeString::getOutputStream (const string& prefix) const {
-    path fileName (_parentPath);
-    fileName /= prefix + _baseFileName;
-    ofstream stream (fileName.c_str());
-    return stream;
-}
-int RebootSafeString::getSerialNumber (const string& prefix) const {
-    ifstream stream = getInputStream (prefix);
     if (stream.seekg(-12, std::ios::end).good()) {
         char header ('h');
         unsigned int serialNumber (0);
@@ -118,7 +109,9 @@ int RebootSafeString::getSerialNumber (const string& prefix) const {
     return 0;
 }
 string RebootSafeString::getValue (const string& prefix) const {
-    ifstream stream = getInputStream (prefix);
+    path fileName (_parentPath);
+    fileName /= prefix + _baseFileName;
+    ifstream stream (fileName.c_str());
     if (stream.seekg(0, std::ios::beg).good()) {
         string value ((istreambuf_iterator<char>(stream)),
                        istreambuf_iterator<char>());   

@@ -22,8 +22,10 @@ using std::shared_ptr;
 
 std::shared_ptr<Frontend> Frontend::_instance;
 RotarySwitch::Position Frontend::_currentRotarySwitchPosition(1);
+#ifndef USE_WIRING_PI
 bool Frontend::_keyboardButton1Pressed = false;
 bool Frontend::_keyboardButton2Pressed = false;
+#endif    
 
 shared_ptr<Frontend> Frontend::create(
         ThreeControlsPlaybackController& playbackController) {

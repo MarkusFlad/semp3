@@ -59,7 +59,6 @@ public:
 
 private:
     std::ifstream getInputStream (const std::string& prefix) const;
-    std::ofstream getOutputStream (const std::string& prefix) const;
     int getSerialNumber (const std::string& prefix) const;
     std::string getValue (const std::string& prefix) const;
 
