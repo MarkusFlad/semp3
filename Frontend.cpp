@@ -67,6 +67,11 @@ Frontend::Frontend(ThreeControlsPlaybackController& playbackController)
         pullUpDnControl (pin, PUD_DOWN);
         wiringPiISR (pin, INT_EDGE_RISING,&Frontend::onRotarySwitchPosition);
     }
+    // Use the current rotary switch position for the album to be selected.
+    // Note that this makes the current-album.cfg file redundant when the
+    // real rotary switch is used. However it is still nice for logging
+    // purposes.
+    onRotarySwitchPosition();
     int pin0 = getWiringPiPin(GpioPin::GPIO_0);
     pullUpDnControl (pin0, PUD_DOWN);
     wiringPiISR (pin0, INT_EDGE_BOTH,
@@ -79,8 +84,6 @@ Frontend::Frontend(ThreeControlsPlaybackController& playbackController)
 }
 void Frontend::pollKeyboard() {
 #ifndef USE_WIRING_PI
-    bool button1Pressed = false;
-    bool button2Pressed = false;
     // Set terminal to raw mode 
     if (system("stty raw")) {
         cerr << "stty raw failed" << endl;
