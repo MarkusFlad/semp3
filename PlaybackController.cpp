@@ -154,6 +154,9 @@ bool PlaybackController::next() {
                                currentTitlePosition.getTitle());
         if (itCurrent != mp3Files.end()) {
             itCurrent++;
+            if (itCurrent == mp3Files.end()) {
+                itCurrent = mp3Files.begin();
+            }
             if (itCurrent != mp3Files.end()) {
                 const path& currentTitle = *itCurrent;
                 setCurrentTitlePosition (TitlePosition (currentTitle, 0));

@@ -53,7 +53,8 @@ public:
      */
     void pause();
     /**
-     * Play the next title.
+     * Play the next title. If the last title has been reached the first title
+     * will be played.
      * @return True if the command could be performed. False if not (
      *         e.g because resume() has not been called at least one time).
      */
