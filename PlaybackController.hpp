@@ -53,12 +53,14 @@ public:
      */
     void pause();
     /**
-     * Play the next title. If the last title has been reached the first title
-     * will be played.
+     * Play the next title.
+     * @param wrapAround If true the first title will be played when the current
+     *                   title is the last title. If false the playback stops
+     *                   at the last title.
      * @return True if the command could be performed. False if not (
      *         e.g because resume() has not been called at least one time).
      */
-    bool next();
+    bool next (bool wrapAround);
     /**
      * If 30 seconds of the title have been already played the play back of
      * this title is started at the beginning. If less than 30 seconds have

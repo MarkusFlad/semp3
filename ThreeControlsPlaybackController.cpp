@@ -72,7 +72,7 @@ void ThreeControlsPlaybackController::Button2Listener::buttonReleased(
     if (pressDuration < _tcpc._longPressDuration) {
         _tcpc._playbackController.pause();
     } else {
-        _tcpc._playbackController.next();
+        _tcpc._playbackController.next(true /* perform wrap-around */);
     }
 }
 //==============================================================================

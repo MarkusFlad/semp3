@@ -146,7 +146,7 @@ bool PlaybackController::resume() {
 void PlaybackController::pause() {
     _mp3Player.pause();
 }
-bool PlaybackController::next() {
+bool PlaybackController::next (bool wrapAround) {
     if (_currentTitlePosition) {
         TitlePosition currentTitlePosition = _currentTitlePosition.get();
         const DirectoryList& mp3Files = _albumMap[_currentAlbum];
@@ -154,7 +154,7 @@ bool PlaybackController::next() {
                                currentTitlePosition.getTitle());
         if (itCurrent != mp3Files.end()) {
             itCurrent++;
-            if (itCurrent == mp3Files.end()) {
+            if (wrapAround && itCurrent == mp3Files.end()) {
                 itCurrent = mp3Files.begin();
             }
             if (itCurrent != mp3Files.end()) {
@@ -262,7 +262,7 @@ void PlaybackController::Mp3PlayerListener::playStatus (int framecount,
 void PlaybackController::Mp3PlayerListener::playingStopped (
         bool endOfSongReached) {
     if (!_playbackController._presentingAlbums) {
-        _playbackController.next();
+        _playbackController.next(false /* no wrap-around */);
     }
 }
 void PlaybackController::Mp3PlayerListener::playingPaused() {
