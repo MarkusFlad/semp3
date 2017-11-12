@@ -125,6 +125,17 @@ void PlaybackController::updateCurrentTitleFile () {
         _currentTitleInfo = RebootSafeString(_currentTitleInfo, ost.str());
     }
 }
+optional<path> PlaybackController::getFirstTitle () const {
+    auto itFoundInMap = _albumMap.find(_currentAlbum);
+    if (itFoundInMap != _albumMap.end()) {
+        const DirectoryList& mp3Files = itFoundInMap->second;
+        auto itFirst = mp3Files.begin();
+        if (itFirst != mp3Files.end()) {
+            return optional<path>(*itFirst);
+        }
+    }
+    return boost::none;
+}
 optional<path> PlaybackController::getNextTitle (bool wrapAround) const {
     if (_currentTitlePosition) {
         TitlePosition currentTitlePosition = _currentTitlePosition.get();
@@ -256,6 +267,15 @@ bool PlaybackController::back() {
     return false;
 }
 void PlaybackController::fastForward () {
+    if (isLastTitle() && _frameCountPlayed + 1 == _frameCountTotal) {
+        optional<path> firstTitle = getFirstTitle();
+        if (firstTitle) {
+            TitlePosition firstTitleTP = TitlePosition(firstTitle.get(), 0);
+            setCurrentTitlePosition (firstTitleTP);
+            _mp3Player.load (firstTitle.get());
+            _fastForwardWaitsForLoadCompleted = true;
+        }
+    }
     startFastPlay(2);
 }
 void PlaybackController::fastBackwards () {

@@ -251,6 +251,12 @@ protected:
      */
     void updateCurrentTitleFile ();
     /**
+     * Get the title first title of the current album.  If there is no title at
+     * all return none. 
+     * @return The first title or none.
+     */
+    boost::optional<Path> getFirstTitle () const;
+    /**
      * Get the title after the current title in the current album. If it is
      * the last title in the album and wrapAround is false or if there is no
      * title at all return none. 
