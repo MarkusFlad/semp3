@@ -267,7 +267,7 @@ bool PlaybackController::back() {
     return false;
 }
 void PlaybackController::fastForward () {
-    if (isLastTitle() && _frameCountPlayed + 1 == _frameCountTotal) {
+    if (isLastTitle() && _frameCountPlayed + 1 >= _frameCountTotal) {
         optional<path> firstTitle = getFirstTitle();
         if (firstTitle) {
             TitlePosition firstTitleTP = TitlePosition(firstTitle.get(), 0);
@@ -280,7 +280,7 @@ void PlaybackController::fastForward () {
 }
 void PlaybackController::fastBackwards () {
     startFastPlay(-2);
-    if (isLastTitle() && _frameCountPlayed + 1 == _frameCountTotal) {
+    if (isLastTitle() && _frameCountPlayed + 1 >= _frameCountTotal) {
         path currentTitle = _currentTitlePosition.get().getTitle();
         TitlePosition currentTitlePosition = TitlePosition(currentTitle, 0);
         setCurrentTitlePosition (currentTitlePosition);
