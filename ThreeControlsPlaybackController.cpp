@@ -13,8 +13,8 @@ ThreeControlsPlaybackController::ThreeControlsPlaybackController (
         const path& albumsPath, Mp3Player& mp3Player, io_service& ioService,
         const time_duration& longPressDuration)
 : _playbackController (albumsPath, mp3Player)
-, _button1 (milliseconds(10), ioService)
-, _button2 (milliseconds(10), ioService)
+, _button1 (milliseconds(10), milliseconds(1000), ioService)
+, _button2 (milliseconds(10), milliseconds(1000), ioService)
 , _rotarySwitch (milliseconds(10), ioService)
 , _button1Listener (*this)
 , _button2Listener (*this)
@@ -44,36 +44,56 @@ void ThreeControlsPlaybackController::setCurrentRotarySwitchPosition (
 //==============================================================================
 ThreeControlsPlaybackController::Button1Listener::Button1Listener (
         ThreeControlsPlaybackController& playbackController)
-: _tcpc (playbackController) {
+: _tcpc (playbackController)
+, _playsFastBackwards (false) {
 }
 void ThreeControlsPlaybackController::Button1Listener::buttonPressed(
         const Button& button) {
+    _playsFastBackwards = false;
+}
+void ThreeControlsPlaybackController::Button1Listener::buttonStillPressed(
+    const Button& button, const time_duration& duration) {
+    if (duration > _tcpc._longPressDuration && !_playsFastBackwards) {
+        _tcpc._playbackController.fastBackwards();
+        _playsFastBackwards = true;
+    }
 }
 void ThreeControlsPlaybackController::Button1Listener::buttonReleased(
         const Button& button, const time_duration& pressDuration) {
     if (pressDuration < _tcpc._longPressDuration) {
         _tcpc._playbackController.pause();
     } else {
-        _tcpc._playbackController.back();
+        _tcpc._playbackController.resume();
     }
+    _playsFastBackwards = false;
 }
 //==============================================================================
 //------------------ PlaybackController::Button2Listener------------------------
 //==============================================================================
 ThreeControlsPlaybackController::Button2Listener::Button2Listener (
         ThreeControlsPlaybackController& playbackController)
-: _tcpc (playbackController) {
+: _tcpc (playbackController)
+, _playsFastForward (false) {
 }
 void ThreeControlsPlaybackController::Button2Listener::buttonPressed(
         const Button& button) {
+    _playsFastForward = false;
+}
+void ThreeControlsPlaybackController::Button2Listener::buttonStillPressed(
+    const Button& button, const time_duration& duration) {
+    if (duration >= _tcpc._longPressDuration && !_playsFastForward) {
+        _tcpc._playbackController.fastForward();
+        _playsFastForward = true;
+    }
 }
 void ThreeControlsPlaybackController::Button2Listener::buttonReleased(
         const Button& button, const time_duration& pressDuration) {
     if (pressDuration < _tcpc._longPressDuration) {
         _tcpc._playbackController.pause();
     } else {
-        _tcpc._playbackController.next(true /* perform wrap-around */);
+        _tcpc._playbackController.resume();
     }
+    _playsFastForward = false;
 }
 //==============================================================================
 //---------------- PlaybackController::RotarySwitchListener---------------------

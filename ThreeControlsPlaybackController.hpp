@@ -88,10 +88,13 @@ private:
     public:
         Button1Listener (ThreeControlsPlaybackController& playbackController);
         void buttonPressed (const Button& button) override;
+        void buttonStillPressed (const Button& button,
+                const TimeDuration& duration);
         void buttonReleased (const Button& button,
             const TimeDuration& pressDuration) override;
     private:
         ThreeControlsPlaybackController& _tcpc;
+        bool _playsFastBackwards;
     };
     /**
      * Listener for the Button 2. Note that its methods are called in the
@@ -101,10 +104,13 @@ private:
     public:
         Button2Listener (ThreeControlsPlaybackController& playbackController);
         void buttonPressed (const Button& button) override;
+        void buttonStillPressed (const Button& button,
+            const TimeDuration& duration);
         void buttonReleased (const Button& button,
             const TimeDuration& pressDuration) override;
     private:
         ThreeControlsPlaybackController& _tcpc;
+        bool _playsFastForward;
     };
     /**
      * Listener for the Rotary Switch. Note that its methods are called in the

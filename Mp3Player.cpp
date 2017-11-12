@@ -7,6 +7,7 @@
 #include <boost/asio.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
+#include <cstdlib>
 
 using std::ostringstream;
 using std::istringstream;
@@ -35,7 +36,10 @@ Mp3Player::Mp3Player(const std::string& executable,
 , _mpg123Program (executable, vector<string>{"-m", "-R"}, ioService)
 , _in (_mpg123Program.in())
 , _out(_mpg123Program.out())
-, _err(_mpg123Program.err()) {
+, _err(_mpg123Program.err())
+, _loadCompleted (false)
+, _jumpToFrameCount (0)
+, _jumpToCompleted (false) {
     bindHandleInputMethod();
 } 
 void Mp3Player::addListener (IListener* listener) {
@@ -50,6 +54,10 @@ void Mp3Player::load(const path& mp3File) {
     oss << "LOAD " << mp3File.string() << endl;
     string command = oss.str();
     _in.write_some (buffer(command.c_str(), command.size()));
+    _loadCompleted = false;
+}
+bool Mp3Player::isLoadCompleted() const {
+    return _loadCompleted;
 }
 void Mp3Player::pause() {
     static const string command = "PAUSE\n";
@@ -63,6 +71,11 @@ void Mp3Player::jumpTo(int frameCount) {
     ostringstream command;
     command << "JUMP " << frameCount << endl;
     _in.write_some (buffer(command.str().c_str(), command.str().size()));
+    _jumpToFrameCount = frameCount;
+    _jumpToCompleted = false;
+}
+bool Mp3Player::isJumpToCompleted() const {
+    return _jumpToCompleted;
 }
 void Mp3Player::jumpBackward (int frames) {
     ostringstream command;
@@ -106,6 +119,9 @@ void Mp3Player::handleReadInput(const error_code& error, size_t length) {
                 iss >> framesLeft;
                 iss >> seconds;
                 iss >> secondsLeft;
+                if (framecount == _jumpToFrameCount) {
+                    _jumpToCompleted = true;
+                }
                 for (auto l : _listeners) {
                     l->playStatus(framecount, framesLeft, seconds, secondsLeft);
                 }
@@ -185,6 +201,7 @@ void Mp3Player::handleReadInput(const error_code& error, size_t length) {
 void Mp3Player::handleStatusMessages(const error_code& error) {
     if (!error) {
         Mp3Title mp3Title = _id3TagParser.getMp3Title();
+        _loadCompleted = true;
         for (auto l : _listeners) {
             l->titleLoaded(mp3Title);
         }

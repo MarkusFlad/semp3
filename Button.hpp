@@ -8,6 +8,7 @@
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/system/error_code.hpp>
+#include <chrono>
 
 /**
  * Class that allows using asynchronous button events in the boost asio
@@ -39,6 +40,13 @@ public:
          */
         virtual void buttonPressed (const Button& button) = 0;
         /**
+         * Called each second the button is still pressed down.
+         * @param button The button that is pressed down.
+         * @param duration The duration how long the button is pressed down.
+         */
+        virtual void buttonStillPressed (const Button& button,
+            const TimeDuration& duration) = 0;
+        /**
          * Called when the button is released.
          * @param button The button that is released.
          * @param pressDuration The time duration how long the button had been
@@ -51,10 +59,16 @@ public:
      * Constructor.
      * @param samplingCycle The time cycle in which the button position is
      *                      checked and the listeners are called.
+     * @param buttonPressedCheckCycle The time cycle in which the button
+     *                                is cyclically checked when it is pressed
+     *                                down. Listeners are called for method
+     *                                buttonStillPressed() during the button
+     *                                is pressed in this cycle time.
      * @param ioService The boost asio io_service used as the context for
      *                  calling the listeners.
      */
     Button (const TimeDuration& samplingCycle,
+            const TimeDuration& buttonPressedCheckCycle,
             boost::asio::io_service& ioService);
     /**
      * Set the current button position. Thread safe method. Note that calling
@@ -79,6 +93,7 @@ public:
 
 protected:
     void handleSampling (const boost::system::error_code& error);
+    void handleButtonPressed (const boost::system::error_code& error);
     
 private:
     boost::asio::deadline_timer _samplingTimer;
@@ -86,6 +101,9 @@ private:
     boost::posix_time::ptime _positionUpdateTime;
     Position _currentPosition;
     Position _position;
+    boost::asio::deadline_timer _buttonPressedCheckTimer;
+    TimeDuration _checkButtonPressedCycle;
+    TimeDuration _buttonPressedDuration;
     std::vector<IListener*> _listeners;
     mutable std::mutex _mutex;
 };

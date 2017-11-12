@@ -41,9 +41,11 @@ public:
     void addListener (IListener* listener);
     void removeListener (IListener* listener);
     void load (const boost::filesystem::path& mp3File);
+    bool isLoadCompleted() const;
     void pause();
     void jumpToBegin();
     void jumpTo(int frameCount);
+    bool isJumpToCompleted() const;
     void jumpBackward (int frames);
     void jumpForward (int frames);
 
@@ -61,6 +63,9 @@ private:
     boost::asio::streambuf _inputBuffer;
     std::vector<IListener*> _listeners;
     Id3TagParser _id3TagParser;
+    bool _loadCompleted;
+    int _jumpToFrameCount;
+    bool _jumpToCompleted;
 };
 
 #endif	/* MP3PLAYER_HPP */

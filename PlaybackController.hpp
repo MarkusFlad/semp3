@@ -3,6 +3,8 @@
 
 #include "Mp3Player.hpp"
 #include "RebootSafeString.hpp"
+#include <boost/date_time/posix_time/ptime.hpp>
+#include <boost/date_time/posix_time/posix_time_duration.hpp>
 #include <boost/optional.hpp>
 #include <boost/filesystem/path.hpp>
 #include <vector>
@@ -18,7 +20,7 @@ namespace boost {
  * Class that controls the play back of the titles from different albums.
  * Uses an Mp3Player to play the titles.
  */
-class PlaybackController {
+class PlaybackController : public virtual Mp3Player::IListener {
 public:
     typedef boost::filesystem::path Path;
     /**
@@ -57,8 +59,9 @@ public:
      * @param wrapAround If true the first title will be played when the current
      *                   title is the last title. If false the playback stops
      *                   at the last title.
-     * @return True if the command could be performed. False if not (
-     *         e.g because resume() has not been called at least one time).
+     * @return True if the command could be performed. False if not (e.g because
+     *         resume() has not been called at least one time or if there is
+     *         no next title).
      */
     bool next (bool wrapAround);
     /**
@@ -70,6 +73,33 @@ public:
      *         e.g because resume() has not been called at least one time).
      */
     bool back();
+    /**
+     * Start the fast-play action in forward direction and return to the caller.
+     * The fast-play action is executed as long as either the last frame of the
+     * last album is reached or any other public method is called.
+     * From the current position play fragments of the following sound faster
+     * than the normal player. The speed is not always the same but is
+     * increased. It starts with factor 2 for 3 seconds, continues with
+     * factor 4 for the next 3 seconds, continues with factor 8 for the next
+     * 3 seconds, etc. until factor 1024 is reached.
+     * Note that if the fast-play action has already been started the factor
+     * is set back to 2 if this method is called.
+     */
+    void fastForward ();
+    /**
+     * Start the fast-play action in backward direction and return to the
+     * caller.
+     * The fast-play action is executed as long as either the first frame of the
+     * first album is reached or any other public method is called.
+     * From the current position play fragments of the following sound but
+     * play fragments in previous positions of the title. The speed is not
+     * always the same but is increased. It starts with factor 2 for 3 seconds,
+     * continues with factor 4 for the next 3 seconds, continues with
+     * factor 8 for the next 3 seconds, etc. until factor 1024 is reached.
+     * Note that if the fast-play action has already been started the factor
+     * is set back to 2 if this method is called.
+     */
+    void fastBackwards ();
     /**
      * Stop playing the current album and resume playing album number n.
      * This means the album n is started at the same position where it has been
@@ -92,6 +122,44 @@ public:
      * is not current title file.
      */
     void resumeAlbum();
+    /**
+     * @see Mp3Player#IListener#mpg123Version
+     */
+    void mpg123Version (const std::string& message) override;
+    /**
+     * @see Mp3Player#IListener#titleLoaded
+     */
+    void titleLoaded (const Mp3Title& title) override;
+    /**
+     * @see Mp3Player#IListener#playStatus
+     */
+    void playStatus (int framecount, int framesLeft, float seconds,
+            float secondsLeft) override;
+    /**
+     * @see Mp3Player#IListener#playingStopped
+     */
+    void playingStopped (bool endOfSongReached) override;
+    /**
+     * @see Mp3Player#IListener#playingPaused
+     */
+    void playingPaused() override;
+    /**
+     * @see Mp3Player#IListener#playingUnpaused
+     */
+    void playingUnpaused() override;
+    /**
+     * @see Mp3Player#IListener#playingErrorOccurred
+     */
+    void playingErrorOccurred (const std::string& errorMessage) override;
+    /**
+     * @see Mp3Player#IListener#mpg123CommunicationProblem
+     */
+    void mpg123CommunicationProblem (
+            const boost::system::error_code& error) override;
+    /**
+     * @see Mp3Player#IListener#mpg123Terminated
+     */
+    void mpg123Terminated (int waitpidStatus) override;
 
 protected:
     /**
@@ -117,24 +185,8 @@ protected:
          */
         Mp3PlayerListener (PlaybackController& playbackController,
                            int titlePositionUpdateCycle);
-        void mpg123Version (const std::string& message) override;
-        void titleLoaded (const Mp3Title& title) override;
-        void playStatus (int framecount, int framesLeft, float seconds,
-                float secondsLeft) override;
-        void playingStopped (bool endOfSongReached) override;
-        void playingPaused() override;
-        void playingUnpaused() override;
-        void playingErrorOccurred (const std::string& errorMessage) override;
-        void mpg123CommunicationProblem (
-                const boost::system::error_code& error) override;
-        void mpg123Terminated (int waitpidStatus) override;
     private:
         PlaybackController& _playbackController;
-        int _titlePositionUpdateCycle;
-        int _frameCountOfLastUpdateCycle;
-        // Performance improvement - by direct access to playback controllers
-        // _secondsPlayed data member.
-        float& _secondsPlayed;
     };
     /**
      * Class that represents a title and the position within this title.
@@ -199,6 +251,26 @@ protected:
      */
     void updateCurrentTitleFile ();
     /**
+     * Get the title after the current title in the current album. If it is
+     * the last title in the album and wrapAround is false or if there is no
+     * title at all return none. 
+     * @param wrapAround The first title returned if the current title
+     *                   is already the last title.
+     * @return The next title or none if there is no next title.
+     */
+    boost::optional<Path> getNextTitle (bool wrapAround) const;
+    /**
+     * Get the title before the current title in the current album. If it is
+     * the first title in the album or if there is no title at all return none. 
+     * @return The previous title or none if there is no previous title.
+     */
+    boost::optional<Path> getPreviousTitle () const;
+    /**
+     * Get if the current title is the last title in the current album.
+     * @return True if it is the last title, false if not.
+     */
+    bool isLastTitle () const;
+    /**
      * Recursively go through the given albums path and return all valid
      * album directories mapped to the list of their mp3 files. A valid album
      * directory contains at least one mp3 file.
@@ -208,20 +280,47 @@ protected:
      * @return List of valid album directories.
      */
     static std::map<Path, DirectoryList> getAlbumMap(const Path& albums);
+    /**
+     * Start the fast-play action with the given factor of how much the title
+     * is played faster than normal.
+     * From the current position play fragments of the following sound faster
+     * than the normal player. The speed is not always the same but is
+     * increased. It starts with the given factor for 3 seconds, continues with
+     * the doubled factor 4 for the next 3 seconds, continues with the doubled
+     * factor 3 seconds, etc. while the factor is below 1024.
+     * @param The factor to be used by the fast-play action. Positive to play
+     *        forward, negative number to play backwards. If 0 no fast-play
+     *        action is performed.
+     */
+    void startFastPlay (int factor);
+    /**
+     * Stop the fast-play action. This is just for convenience and in principle
+     * the same as calling startFastPlay(0).
+     */
+    void stopFastPlay ();
 private:
     const Path& _albumsPath;
     Mp3Player& _mp3Player;
-    Mp3PlayerListener _mp3PlayerListener;
     DirectoryList _albums;
     std::map<Path, DirectoryList> _albumMap;
     Path _currentAlbum;
     boost::optional<TitlePosition> _currentTitlePosition;
+    int _titlePositionUpdateCycle;
+    int _frameCountOfLastUpdateCycle;
+    int _frameCountPlayed;
+    int _frameCountTotal;
     float _secondsPlayed;
+    int _fastPlayFactor;
+    bool _fastForwardWaitsForLoadCompleted;
+    bool _fastBackwardsWaitsForLoadCompleted;
+    bool _fastBackwardsWaitsForJumpCompleted;
+    boost::posix_time::ptime _fastPlayFactorUpdateTime;
     bool _presentingAlbums;
     RebootSafeString _currentAlbumInfo;
     RebootSafeString _currentTitleInfo;
     static const std::string CURRENT_ALBUM_FILENAME;
     static const std::string CURRENT_TITLE_FILENAME;
+    static const boost::posix_time::time_duration FPFI_DURATION;
 };
 
 #endif	/* PLAYBACK_CONTROLLER_HPP */

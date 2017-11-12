@@ -26,21 +26,34 @@ using boost::filesystem::directory_iterator;
 using boost::filesystem::exists;
 using boost::filesystem::is_directory;
 using boost::system::error_code;
+using boost::posix_time::ptime;
+using boost::posix_time::microsec_clock;
+using boost::posix_time::seconds;
+using boost::posix_time::time_duration;
 
 //==============================================================================
 //-------------------------- PlaybackController --------------------------------
 //==============================================================================
 const string PlaybackController::CURRENT_ALBUM_FILENAME ("current-album.cfg");
 const string PlaybackController::CURRENT_TITLE_FILENAME ("current-title.cfg");
+const time_duration PlaybackController::FPFI_DURATION (seconds(3));
 
 PlaybackController::PlaybackController (const path& albumsPath,
         Mp3Player& mp3Player)
 : _albumsPath (albumsPath)
 , _mp3Player (mp3Player)
-, _mp3PlayerListener (*this, 100 /* Frames until storing the title position */)
 , _albumMap (getAlbumMap(albumsPath))
 , _currentTitlePosition (boost::none)
+, _titlePositionUpdateCycle (100 /* Frames until storing the title position */)
+, _frameCountOfLastUpdateCycle (0)
+, _frameCountPlayed (0)
+, _frameCountTotal (0)
 , _secondsPlayed (0.0)
+, _fastPlayFactor (0)
+, _fastForwardWaitsForLoadCompleted (false)
+, _fastBackwardsWaitsForLoadCompleted (false)
+, _fastBackwardsWaitsForJumpCompleted (false)
+, _fastPlayFactorUpdateTime (microsec_clock::local_time())
 , _presentingAlbums (false) {
     for (auto albumMapping : _albumMap) {
         _albums.push_back (albumMapping.first);
@@ -54,7 +67,7 @@ PlaybackController::PlaybackController (const path& albumsPath,
             _currentAlbum = *albumsBegin;
         }
     }
-    _mp3Player.addListener(&_mp3PlayerListener);
+    _mp3Player.addListener(this);
 }
 void PlaybackController::setCurrentTitlePosition (const TitlePosition&
                                                   titlePosition) {
@@ -112,6 +125,59 @@ void PlaybackController::updateCurrentTitleFile () {
         _currentTitleInfo = RebootSafeString(_currentTitleInfo, ost.str());
     }
 }
+optional<path> PlaybackController::getNextTitle (bool wrapAround) const {
+    if (_currentTitlePosition) {
+        TitlePosition currentTitlePosition = _currentTitlePosition.get();
+        auto itFoundInMap = _albumMap.find(_currentAlbum);
+        if (itFoundInMap != _albumMap.end()) {
+            const DirectoryList& mp3Files = itFoundInMap->second;
+            auto itCurrent = find (mp3Files.begin(), mp3Files.end(),
+                                   currentTitlePosition.getTitle());
+            if (itCurrent != mp3Files.end()) {
+                itCurrent++;
+                if (wrapAround && itCurrent == mp3Files.end()) {
+                    itCurrent = mp3Files.begin();
+                }
+                if (itCurrent != mp3Files.end()) {
+                    return optional<path>(*itCurrent);
+                }
+            }
+        }
+    }
+    return boost::none;
+}
+optional<path> PlaybackController::getPreviousTitle () const {
+    if (_currentTitlePosition) {
+        TitlePosition currentTitlePosition = _currentTitlePosition.get();
+        auto itFoundInMap = _albumMap.find(_currentAlbum);
+        if (itFoundInMap != _albumMap.end()) {
+            const DirectoryList& mp3Files = itFoundInMap->second;
+            auto itCurrent = find (mp3Files.begin(), mp3Files.end(),
+                                   currentTitlePosition.getTitle());
+            if (itCurrent != mp3Files.begin()) {
+                itCurrent--;
+                return optional<path>(*itCurrent);
+            }
+        }
+    }
+    return boost::none;
+}
+bool PlaybackController::isLastTitle () const {
+    if (_currentTitlePosition) {
+        TitlePosition currentTitlePosition = _currentTitlePosition.get();
+        auto itFoundInMap = _albumMap.find(_currentAlbum);
+        if (itFoundInMap != _albumMap.end()) {
+            const DirectoryList& mp3Files = itFoundInMap->second;
+            auto itCurrent = find (mp3Files.begin(), mp3Files.end(),
+                                   currentTitlePosition.getTitle());
+            if (itCurrent != mp3Files.end()) {
+                itCurrent++;
+                return (itCurrent == mp3Files.end());
+            }
+        }
+    }
+    return false;
+}
 map<path, vector<path>> PlaybackController::getAlbumMap(const Path& albums) {
     map<path, vector<path>> albumMap;
     for (auto itAF = directory_iterator(albums); itAF != directory_iterator();
@@ -132,7 +198,22 @@ map<path, vector<path>> PlaybackController::getAlbumMap(const Path& albums) {
     }
     return albumMap;
 }
+void PlaybackController::startFastPlay (int factor) {
+    if (_fastPlayFactor != factor) {
+        _fastPlayFactor = factor;
+        _fastPlayFactorUpdateTime = microsec_clock::local_time();
+        _fastForwardWaitsForLoadCompleted = false;
+        _fastBackwardsWaitsForLoadCompleted = false;
+        _fastBackwardsWaitsForJumpCompleted = false;
+        // Probably last frame has not been stored, therefore store for sure.
+        setCurrentTitlePosition(_frameCountPlayed);
+    }
+}
+void PlaybackController::stopFastPlay () {
+    startFastPlay(0);
+}
 bool PlaybackController::resume() {
+    stopFastPlay();
     _currentTitlePosition = getCurrentTitlePosition (_currentAlbum);
     if (_currentTitlePosition) {
         TitlePosition currentTitlePosition = _currentTitlePosition.get();
@@ -144,43 +225,29 @@ bool PlaybackController::resume() {
     }
 }
 void PlaybackController::pause() {
+    stopFastPlay();
     _mp3Player.pause();
 }
 bool PlaybackController::next (bool wrapAround) {
-    if (_currentTitlePosition) {
-        TitlePosition currentTitlePosition = _currentTitlePosition.get();
-        const DirectoryList& mp3Files = _albumMap[_currentAlbum];
-        auto itCurrent = find (mp3Files.begin(), mp3Files.end(),
-                               currentTitlePosition.getTitle());
-        if (itCurrent != mp3Files.end()) {
-            itCurrent++;
-            if (wrapAround && itCurrent == mp3Files.end()) {
-                itCurrent = mp3Files.begin();
-            }
-            if (itCurrent != mp3Files.end()) {
-                const path& currentTitle = *itCurrent;
-                setCurrentTitlePosition (TitlePosition (currentTitle, 0));
-                _mp3Player.load (currentTitle);
-            }
-        }
+    stopFastPlay();
+    optional<path> nextTitle = getNextTitle(wrapAround);
+    if (nextTitle) {
+        setCurrentTitlePosition (TitlePosition (nextTitle.get(), 0));
+        _mp3Player.load (nextTitle.get());
         return true;
     }
     return false;
 }
 bool PlaybackController::back() {
+    stopFastPlay();
     if (_secondsPlayed > 30.0) {
         _mp3Player.jumpToBegin();
         return true;
-    } else if (_currentTitlePosition) {
-        TitlePosition currentTitlePosition = _currentTitlePosition.get();
-        const DirectoryList& mp3Files = _albumMap[_currentAlbum];
-        auto itCurrent = find (mp3Files.begin(), mp3Files.end(),
-                               currentTitlePosition.getTitle());
-        if (itCurrent != mp3Files.begin()) {
-            itCurrent--;
-            const path& currentTitle = *itCurrent;
-            setCurrentTitlePosition (TitlePosition (currentTitle, 0));
-            _mp3Player.load (currentTitle);
+    } else {
+        optional<path> previousTitle = getPreviousTitle();
+        if (previousTitle) {
+            setCurrentTitlePosition (TitlePosition (previousTitle.get(), 0));
+            _mp3Player.load (previousTitle.get());
         } else {
             _mp3Player.jumpToBegin();
         }
@@ -188,7 +255,22 @@ bool PlaybackController::back() {
     }
     return false;
 }
+void PlaybackController::fastForward () {
+    startFastPlay(2);
+}
+void PlaybackController::fastBackwards () {
+    startFastPlay(-2);
+    if (isLastTitle() && _frameCountPlayed + 1 == _frameCountTotal) {
+        path currentTitle = _currentTitlePosition.get().getTitle();
+        TitlePosition currentTitlePosition = TitlePosition(currentTitle, 0);
+        setCurrentTitlePosition (currentTitlePosition);
+        _mp3Player.load (currentTitle);
+        _fastBackwardsWaitsForLoadCompleted = true;
+        return;
+    }
+}
 void PlaybackController::jumpToAlbum (int n) {
+    stopFastPlay();
     auto itCurrent = _albums.begin();
     if (n > 0) {
         advance (itCurrent, min<int> (_albums.size() - 1, n - 1));
@@ -201,6 +283,7 @@ void PlaybackController::jumpToAlbum (int n) {
     }
 }
 void PlaybackController::presentNextAlbum() {
+    stopFastPlay();
     _presentingAlbums = true;
     auto itCurrent = find (_albums.begin(), _albums.end(), _currentAlbum);
     if (itCurrent == _albums.end()) {
@@ -230,52 +313,101 @@ void PlaybackController::presentNextAlbum() {
     _currentAlbum = currentAlbum;
 }
 void PlaybackController::resumeAlbum() {
+    stopFastPlay();
     _presentingAlbums = false;
     resume();
 }
-//==============================================================================
-//----------------- PlaybackController::Mp3PlayerListener-----------------------
-//==============================================================================
-PlaybackController::Mp3PlayerListener::Mp3PlayerListener (
-        PlaybackController& playbackController, int titlePositionUpdateCycle)
-: _playbackController (playbackController)
-, _titlePositionUpdateCycle (titlePositionUpdateCycle)
-, _frameCountOfLastUpdateCycle (0)
-, _secondsPlayed (playbackController._secondsPlayed) {
+void PlaybackController::mpg123Version (const string& message) {
 }
-void PlaybackController::Mp3PlayerListener::mpg123Version (
-        const string& message) {
-}
-void PlaybackController::Mp3PlayerListener::titleLoaded (
-        const Mp3Title& title) {
+void PlaybackController::titleLoaded (const Mp3Title& title) {
     cout << "Playing title " << title.toString() << endl;
     _frameCountOfLastUpdateCycle = 0;
 }
-void PlaybackController::Mp3PlayerListener::playStatus (int framecount,
-        int framesLeft, float seconds, float secondsLeft) {
+void PlaybackController::playStatus (int framecount, int framesLeft,
+        float seconds, float secondsLeft) {
+    _frameCountPlayed = framecount;
+    _frameCountTotal = framecount + framesLeft;
     _secondsPlayed = seconds;
     if (framecount - _frameCountOfLastUpdateCycle > _titlePositionUpdateCycle) {
         _frameCountOfLastUpdateCycle = framecount;
-        _playbackController.setCurrentTitlePosition(framecount);
+        setCurrentTitlePosition(framecount);
+    }
+    if (_fastPlayFactor == 0) {
+        return;
+    }
+    ptime tNow = microsec_clock::local_time();
+    time_duration timeSinceLastFactorUpdate = tNow - _fastPlayFactorUpdateTime;
+    if (timeSinceLastFactorUpdate > FPFI_DURATION && _fastPlayFactor < 1024) {
+        _fastPlayFactor <<= 1;
+        _fastPlayFactorUpdateTime = tNow;
+    }
+    float secondsTotal = seconds + secondsLeft;
+    int framesPerSecond = _frameCountTotal /
+        (static_cast<int>(secondsTotal) + 1);
+    if (_fastForwardWaitsForLoadCompleted) {
+        if (_mp3Player.isLoadCompleted()) {
+            _fastForwardWaitsForLoadCompleted = false;
+        } else {
+            return;
+        }
+    } else if (_fastBackwardsWaitsForLoadCompleted) {
+        if (_mp3Player.isLoadCompleted()) {
+            _mp3Player.jumpTo(_frameCountTotal - framesPerSecond);
+            _fastBackwardsWaitsForLoadCompleted = false;
+            _fastBackwardsWaitsForJumpCompleted = true;
+        }
+        return;
+    } else  if (_fastBackwardsWaitsForJumpCompleted) {
+        if (!_mp3Player.isJumpToCompleted()) {
+            return;
+        } else {
+            _fastBackwardsWaitsForJumpCompleted = false;
+        }
+    }
+    int framesPerEighthOfSecond = framesPerSecond >> 3;
+    int frameJump = framesPerEighthOfSecond * _fastPlayFactor;
+    int nextFrameCount = framecount + frameJump;
+    if (nextFrameCount > _frameCountTotal) {
+        optional<path> nextTitle = getNextTitle(false /* no wrap-around. */);
+        if (nextTitle) {
+            TitlePosition nextTP = TitlePosition(nextTitle.get(), 0);
+            setCurrentTitlePosition (nextTP);
+            _mp3Player.load (nextTitle.get());
+            _fastForwardWaitsForLoadCompleted = true;
+            return;
+        } else {
+            nextFrameCount = _frameCountTotal - framesPerSecond;
+        }
+    } else if (nextFrameCount < 0) {
+        optional<path> previousTitle = getPreviousTitle();
+        if (previousTitle) {
+            TitlePosition previousTP = TitlePosition(previousTitle.get(), 0);
+            setCurrentTitlePosition (previousTP);
+            _mp3Player.load (previousTitle.get());
+            _fastBackwardsWaitsForLoadCompleted = true;
+            return;
+        } else {
+            nextFrameCount = framesPerSecond;
+        }
+    }
+    _mp3Player.jumpTo(nextFrameCount);
+}
+void PlaybackController::playingStopped (bool endOfSongReached) {
+    if (!_presentingAlbums && _fastPlayFactor == 0) {
+        next(false /* no wrap-around */);
     }
 }
-void PlaybackController::Mp3PlayerListener::playingStopped (
-        bool endOfSongReached) {
-    if (!_playbackController._presentingAlbums) {
-        _playbackController.next(false /* no wrap-around */);
-    }
+void PlaybackController::playingPaused() {
 }
-void PlaybackController::Mp3PlayerListener::playingPaused() {
+void PlaybackController::playingUnpaused() {
 }
-void PlaybackController::Mp3PlayerListener::playingUnpaused() {
-}
-void PlaybackController::Mp3PlayerListener::playingErrorOccurred (
+void PlaybackController::playingErrorOccurred (
         const string& errorMessage) {
 }
-void PlaybackController::Mp3PlayerListener::mpg123CommunicationProblem (
+void PlaybackController::mpg123CommunicationProblem (
         const error_code& error) {
 }
-void PlaybackController::Mp3PlayerListener::mpg123Terminated (
+void PlaybackController::mpg123Terminated (
         int waitpidStatus) {
 }
 //==============================================================================

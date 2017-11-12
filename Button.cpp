@@ -19,12 +19,17 @@ using boost::posix_time::microsec_clock;
 using boost::posix_time::milliseconds;
 using boost::posix_time::time_duration;
 
-Button::Button (const time_duration& samplingCycle, io_service& ioService)
+Button::Button (const time_duration& samplingCycle,
+        const TimeDuration& buttonPressedCheckCycle,
+        io_service& ioService)
 : _samplingTimer(ioService)
 , _samplingCycle (samplingCycle)
 , _positionUpdateTime(microsec_clock::local_time())
 , _currentPosition (Position::RELEASED)
-, _position (Position::RELEASED) {
+, _position (Position::RELEASED)
+, _buttonPressedCheckTimer (ioService)
+, _checkButtonPressedCycle (buttonPressedCheckCycle)
+, _buttonPressedDuration (milliseconds(0)) {
 }
 void Button::setCurrentPosition (Position currentPosition) {
     lock_guard<mutex> lock (_mutex);
@@ -44,6 +49,10 @@ void Button::setCurrentPosition (Position currentPosition) {
             for (IListener* listener : _listeners) {
                 listener->buttonPressed (*this);
             }
+            _buttonPressedDuration = milliseconds(0);
+            _buttonPressedCheckTimer.expires_from_now(_checkButtonPressedCycle);
+            _buttonPressedCheckTimer.async_wait(
+                    bind(&Button::handleButtonPressed, this, error));
         } else {
             time_duration pressTime = tNow - _positionUpdateTime;
             for (IListener* listener : _listeners) {
@@ -63,6 +72,22 @@ void Button::addListener (IListener* listener) {
 void Button::handleSampling (const boost::system::error_code& error) {
     if (!error) {
         setCurrentPosition (_currentPosition);
+    } else {
+        cerr << "Error in Button::handleSampling() - " << error << endl;
+    }
+}
+void Button::handleButtonPressed (const boost::system::error_code& error) {
+    lock_guard<mutex> lock (_mutex);
+    if (!error) {
+        if (Position::PRESSED == _currentPosition) {
+            _buttonPressedDuration += _checkButtonPressedCycle;
+            for (IListener* listener : _listeners) {
+                listener->buttonStillPressed(*this, _buttonPressedDuration);
+            }
+            _buttonPressedCheckTimer.expires_from_now(_checkButtonPressedCycle);
+            _buttonPressedCheckTimer.async_wait(
+                    bind(&Button::handleButtonPressed, this, error));
+        }
     } else {
         cerr << "Error in Button::handleSampling() - " << error << endl;
     }
