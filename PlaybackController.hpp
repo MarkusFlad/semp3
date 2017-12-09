@@ -81,7 +81,7 @@ public:
      * than the normal player. The speed is not always the same but is
      * increased. It starts with factor 2 for 3 seconds, continues with
      * factor 4 for the next 3 seconds, continues with factor 8 for the next
-     * 3 seconds, etc. until factor 1024 is reached.
+     * 3 seconds, etc. until factor 8192 is reached.
      * Note that if the fast-play action has already been started the factor
      * is set back to 2 if this method is called.
      */
@@ -95,7 +95,7 @@ public:
      * play fragments in previous positions of the title. The speed is not
      * always the same but is increased. It starts with factor 2 for 3 seconds,
      * continues with factor 4 for the next 3 seconds, continues with
-     * factor 8 for the next 3 seconds, etc. until factor 1024 is reached.
+     * factor 8 for the next 3 seconds, etc. until factor 8192 is reached.
      * Note that if the fast-play action has already been started the factor
      * is set back to 2 if this method is called.
      */
@@ -293,7 +293,7 @@ protected:
      * than the normal player. The speed is not always the same but is
      * increased. It starts with the given factor for 3 seconds, continues with
      * the doubled factor 4 for the next 3 seconds, continues with the doubled
-     * factor 3 seconds, etc. while the factor is below 1024.
+     * factor 3 seconds, etc. while the factor is below 8192.
      * @param The factor to be used by the fast-play action. Positive to play
      *        forward, negative number to play backwards. If 0 no fast-play
      *        action is performed.

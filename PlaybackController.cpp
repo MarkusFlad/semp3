@@ -357,7 +357,7 @@ void PlaybackController::playStatus (int framecount, int framesLeft,
     }
     ptime tNow = microsec_clock::local_time();
     time_duration timeSinceLastFactorUpdate = tNow - _fastPlayFactorUpdateTime;
-    if (timeSinceLastFactorUpdate > FPFI_DURATION && _fastPlayFactor < 1024) {
+    if (timeSinceLastFactorUpdate > FPFI_DURATION && _fastPlayFactor < 8192) {
         _fastPlayFactor <<= 1;
         _fastPlayFactorUpdateTime = tNow;
     }
