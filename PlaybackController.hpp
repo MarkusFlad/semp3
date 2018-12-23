@@ -8,6 +8,7 @@
 #include <boost/optional.hpp>
 #include <boost/filesystem/path.hpp>
 #include <vector>
+#include <queue>
 #include <map>
 
 namespace boost {
@@ -34,10 +35,13 @@ public:
      * playback stops.
      * @param albumsPath The directory containing one sub-directory for each
      *                   album. The album directories contain the mp3 files.
+     * @param spokenNumbersPath The directory containing spoken numbers in
+     *                          mp3 format.
      * @param mp3Player The Mp3Player instance that is controlled to play
      *                  the titles.
      */
-    PlaybackController (const Path& albumsPath, Mp3Player& mp3Player);
+    PlaybackController (const Path& albumsPath, const Path& spokenNumbersPath,
+                        Mp3Player& mp3Player);
     /**
      * Start the playback of the current album title and frame if at least one
      * valid MP3 album has been found in the albums path that has been given to
@@ -277,6 +281,12 @@ protected:
      */
     bool isLastTitle () const;
     /**
+     * Get the number of the current title.
+     * @return Number of the current title. If there is no current title zero
+     *         is returned.
+     */
+    int getCurrentTitleNumber() const;
+    /**
      * Recursively go through the given albums path and return all valid
      * album directories mapped to the list of their mp3 files. A valid album
      * directory contains at least one mp3 file.
@@ -304,11 +314,23 @@ protected:
      * the same as calling startFastPlay(0).
      */
     void stopFastPlay ();
+    /**
+     * Say the given number by concatenating basic numbers. For example first
+     * say 200 and then 12 for 212. Add the numbers to say to the corresponding
+     * number queue.
+     */
+    void say(int number);
+    /**
+     * Say the next number out of the queue. The next word is not removed from
+     * the queue.
+     */
+    void sayNextNumber();
 private:
     const Path& _albumsPath;
     Mp3Player& _mp3Player;
     DirectoryList _albums;
     std::map<Path, DirectoryList> _albumMap;
+    std::map<int, Path> _spokenNumberMap;
     Path _currentAlbum;
     boost::optional<TitlePosition> _currentTitlePosition;
     int _titlePositionUpdateCycle;
@@ -320,6 +342,7 @@ private:
     bool _fastForwardWaitsForLoadCompleted;
     bool _fastBackwardsWaitsForLoadCompleted;
     bool _fastBackwardsWaitsForJumpCompleted;
+    std::queue<int> _numbersToSay;
     boost::posix_time::ptime _fastPlayFactorUpdateTime;
     bool _presentingAlbums;
     RebootSafeString _currentAlbumInfo;

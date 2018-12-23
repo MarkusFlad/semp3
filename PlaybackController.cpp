@@ -6,11 +6,13 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <vector>
 
 using std::string;
 using std::max;
 using std::min;
 using std::vector;
+using std::queue;
 using std::distance;
 using std::advance;
 using std::map;
@@ -39,7 +41,8 @@ const string PlaybackController::CURRENT_TITLE_FILENAME ("current-title.cfg");
 const time_duration PlaybackController::FPFI_DURATION (seconds(3));
 
 PlaybackController::PlaybackController (const path& albumsPath,
-        Mp3Player& mp3Player)
+                                        const path& spokenNumbersPath,
+                                        Mp3Player& mp3Player)
 : _albumsPath (albumsPath)
 , _mp3Player (mp3Player)
 , _albumMap (getAlbumMap(albumsPath))
@@ -65,6 +68,16 @@ PlaybackController::PlaybackController (const path& albumsPath,
         DirectoryList::const_iterator albumsBegin = _albums.begin();
         if (albumsBegin != _albums.end()) {
             _currentAlbum = *albumsBegin;
+        }
+    }
+    for (auto itSN = directory_iterator(spokenNumbersPath);
+         itSN != directory_iterator(); ++itSN) {
+        const path& file = *itSN;
+        if (!is_directory(file) && file.extension() == ".mp3") {
+            istringstream iss(file.filename().string());
+            int number;
+            iss >> number;
+            _spokenNumberMap[number] = file;
         }
     }
     _mp3Player.addListener(this);
@@ -189,6 +202,26 @@ bool PlaybackController::isLastTitle () const {
     }
     return false;
 }
+int PlaybackController::getCurrentTitleNumber () const {
+    int n=0;
+    if (_currentTitlePosition) {
+        TitlePosition currentTitlePosition = _currentTitlePosition.get();
+        auto itFoundInMap = _albumMap.find(_currentAlbum);
+        if (itFoundInMap != _albumMap.end()) {
+            const DirectoryList& mp3Files = itFoundInMap->second;
+            for (auto it = mp3Files.begin(); it != mp3Files.end(); ++it) {
+                path file = *it;
+                if (!is_directory(file) && file.extension() == ".mp3") {
+                    n++;
+                    if (file == currentTitlePosition.getTitle()) {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    return n;
+}
 map<path, vector<path>> PlaybackController::getAlbumMap(const Path& albums) {
     map<path, vector<path>> albumMap;
     for (auto itAF = directory_iterator(albums); itAF != directory_iterator();
@@ -216,12 +249,28 @@ void PlaybackController::startFastPlay (int factor) {
         _fastForwardWaitsForLoadCompleted = false;
         _fastBackwardsWaitsForLoadCompleted = false;
         _fastBackwardsWaitsForJumpCompleted = false;
+        _numbersToSay = queue<int>();
         // Probably last frame has not been stored, therefore store for sure.
         setCurrentTitlePosition(_frameCountPlayed);
     }
 }
 void PlaybackController::stopFastPlay () {
     startFastPlay(0);
+}
+void PlaybackController::say(int number) {
+    if (number <= 100) {
+        _numbersToSay.push(number);
+    } else {
+        int hundred = number / 100 * 100;
+        _numbersToSay.push(hundred);
+        int rest = number % hundred;
+        _numbersToSay.push(rest);
+    }
+    sayNextNumber();
+}
+void PlaybackController::sayNextNumber() {
+    int nextNumber = _numbersToSay.front();
+    _mp3Player.load(_spokenNumberMap[nextNumber]);
 }
 bool PlaybackController::resume() {
     stopFastPlay();
@@ -340,8 +389,10 @@ void PlaybackController::resumeAlbum() {
 void PlaybackController::mpg123Version (const string& message) {
 }
 void PlaybackController::titleLoaded (const Mp3Title& title) {
-    cout << "Playing title " << title.toString() << endl;
-    _frameCountOfLastUpdateCycle = 0;
+    if (_numbersToSay.empty()) {
+        cout << "Playing title " << title.toString() << endl;
+        _frameCountOfLastUpdateCycle = 0;
+    }
 }
 void PlaybackController::playStatus (int framecount, int framesLeft,
         float seconds, float secondsLeft) {
@@ -364,7 +415,9 @@ void PlaybackController::playStatus (int framecount, int framesLeft,
     float secondsTotal = seconds + secondsLeft;
     int framesPerSecond = _frameCountTotal /
         (static_cast<int>(secondsTotal) + 1);
-    if (_fastForwardWaitsForLoadCompleted) {
+    if (!_numbersToSay.empty()) {
+        return;
+    } else if (_fastForwardWaitsForLoadCompleted) {
         if (_mp3Player.isLoadCompleted()) {
             _fastForwardWaitsForLoadCompleted = false;
         } else {
@@ -392,8 +445,7 @@ void PlaybackController::playStatus (int framecount, int framesLeft,
         if (nextTitle) {
             TitlePosition nextTP = TitlePosition(nextTitle.get(), 0);
             setCurrentTitlePosition (nextTP);
-            _mp3Player.load (nextTitle.get());
-            _fastForwardWaitsForLoadCompleted = true;
+            say (getCurrentTitleNumber());
             return;
         } else {
             nextFrameCount = _frameCountTotal - framesPerSecond;
@@ -403,8 +455,7 @@ void PlaybackController::playStatus (int framecount, int framesLeft,
         if (previousTitle) {
             TitlePosition previousTP = TitlePosition(previousTitle.get(), 0);
             setCurrentTitlePosition (previousTP);
-            _mp3Player.load (previousTitle.get());
-            _fastBackwardsWaitsForLoadCompleted = true;
+            say (getCurrentTitleNumber());
             return;
         } else {
             nextFrameCount = framesPerSecond;
@@ -413,7 +464,20 @@ void PlaybackController::playStatus (int framecount, int framesLeft,
     _mp3Player.jumpTo(nextFrameCount);
 }
 void PlaybackController::playingStopped (bool endOfSongReached) {
-    if (!_presentingAlbums && _fastPlayFactor == 0) {
+    if (!_numbersToSay.empty()) {
+        _numbersToSay.pop();
+    }
+    if (!_numbersToSay.empty()) {
+        sayNextNumber();
+    } else if (_currentTitlePosition) {
+        TitlePosition currentTitlePosition = _currentTitlePosition.get();
+        _mp3Player.load(currentTitlePosition.getTitle());
+        if (_fastPlayFactor > 0) {
+            _fastForwardWaitsForLoadCompleted = true;
+        } else if (_fastPlayFactor < 0) {
+            _fastBackwardsWaitsForLoadCompleted = true;
+        }
+    } else if (!_presentingAlbums && _fastPlayFactor == 0) {
         next(false /* no wrap-around */);
     }
 }

@@ -10,9 +10,10 @@ using boost::posix_time::milliseconds;
 //-------------------------- PlaybackController --------------------------------
 //==============================================================================
 ThreeControlsPlaybackController::ThreeControlsPlaybackController (
-        const path& albumsPath, Mp3Player& mp3Player, io_service& ioService,
+        const path& albumsPath, const path& spokenNumbersPath,
+        Mp3Player& mp3Player, io_service& ioService,
         const time_duration& longPressDuration)
-: _playbackController (albumsPath, mp3Player)
+: _playbackController (albumsPath, spokenNumbersPath, mp3Player)
 , _button1 (milliseconds(10), milliseconds(1000), ioService)
 , _button2 (milliseconds(10), milliseconds(1000), ioService)
 , _rotarySwitch (milliseconds(10), ioService)
@@ -53,7 +54,7 @@ void ThreeControlsPlaybackController::Button1Listener::buttonPressed(
 }
 void ThreeControlsPlaybackController::Button1Listener::buttonStillPressed(
     const Button& button, const time_duration& duration) {
-    if (duration > _tcpc._longPressDuration && !_playsFastBackwards) {
+    if (duration >= _tcpc._longPressDuration && !_playsFastBackwards) {
         _tcpc._playbackController.fastBackwards();
         _playsFastBackwards = true;
     }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="95">
+<configurationDescriptor version="100">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
@@ -58,6 +58,7 @@
       <compileType>
         <ccTool>
           <standard>8</standard>
+          <commandLine>-Wno-deprecated</commandLine>
         </ccTool>
         <linkerTool>
           <linkerLibItems>
@@ -129,6 +130,7 @@
         <ccTool>
           <developmentMode>5</developmentMode>
           <standard>8</standard>
+          <commandLine>-Wno-deprecated</commandLine>
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
@@ -208,6 +210,7 @@
         <ccTool>
           <developmentMode>5</developmentMode>
           <standard>8</standard>
+          <commandLine>-Wno-deprecated</commandLine>
           <preprocessorList>
             <Elem>USE_WIRING_PI</Elem>
           </preprocessorList>

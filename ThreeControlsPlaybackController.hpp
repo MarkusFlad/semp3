@@ -41,7 +41,8 @@ public:
      *                          performed.
      */
     ThreeControlsPlaybackController (const Path& albumsPath,
-            Mp3Player& mp3Player, boost::asio::io_service& ioService,
+            const Path& spokenNumbersPath, Mp3Player& mp3Player,
+            boost::asio::io_service& ioService,
             const TimeDuration& longPressDuration = Seconds (1));
     /**
      * Play the current album, title and frame if the given albums-path is

@@ -21,7 +21,7 @@ FC=gfortran
 AS=as
 
 # Macros
-CND_PLATFORM=GNU-Linux-x86
+CND_PLATFORM=GNU-Linux
 CND_DLIB_EXT=so
 CND_CONF=WiringPi
 CND_DISTDIR=dist
@@ -52,8 +52,8 @@ OBJECTFILES= \
 CFLAGS=
 
 # CC Compiler Flags
-CCFLAGS=
-CXXFLAGS=
+CCFLAGS=-Wno-deprecated
+CXXFLAGS=-Wno-deprecated
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -72,57 +72,57 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/semp3: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/semp3 ${OBJECTFILES} ${LDLIBSOPTIONS}
 
-${OBJECTDIR}/Button.o: Button.cpp 
+${OBJECTDIR}/Button.o: Button.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -DUSE_WIRING_PI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Button.o Button.cpp
 
-${OBJECTDIR}/ChildProgram.o: ChildProgram.cpp 
+${OBJECTDIR}/ChildProgram.o: ChildProgram.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -DUSE_WIRING_PI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/ChildProgram.o ChildProgram.cpp
 
-${OBJECTDIR}/Frontend.o: Frontend.cpp 
+${OBJECTDIR}/Frontend.o: Frontend.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -DUSE_WIRING_PI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Frontend.o Frontend.cpp
 
-${OBJECTDIR}/Id3TagParser.o: Id3TagParser.cpp 
+${OBJECTDIR}/Id3TagParser.o: Id3TagParser.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -DUSE_WIRING_PI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Id3TagParser.o Id3TagParser.cpp
 
-${OBJECTDIR}/Mp3Player.o: Mp3Player.cpp 
+${OBJECTDIR}/Mp3Player.o: Mp3Player.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -DUSE_WIRING_PI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Mp3Player.o Mp3Player.cpp
 
-${OBJECTDIR}/Mp3Title.o: Mp3Title.cpp 
+${OBJECTDIR}/Mp3Title.o: Mp3Title.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -DUSE_WIRING_PI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Mp3Title.o Mp3Title.cpp
 
-${OBJECTDIR}/PlaybackController.o: PlaybackController.cpp 
+${OBJECTDIR}/PlaybackController.o: PlaybackController.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -DUSE_WIRING_PI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/PlaybackController.o PlaybackController.cpp
 
-${OBJECTDIR}/RebootSafeString.o: RebootSafeString.cpp 
+${OBJECTDIR}/RebootSafeString.o: RebootSafeString.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -DUSE_WIRING_PI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/RebootSafeString.o RebootSafeString.cpp
 
-${OBJECTDIR}/RotarySwitch.o: RotarySwitch.cpp 
+${OBJECTDIR}/RotarySwitch.o: RotarySwitch.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -DUSE_WIRING_PI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/RotarySwitch.o RotarySwitch.cpp
 
-${OBJECTDIR}/ThreeControlsPlaybackController.o: ThreeControlsPlaybackController.cpp 
+${OBJECTDIR}/ThreeControlsPlaybackController.o: ThreeControlsPlaybackController.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -DUSE_WIRING_PI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/ThreeControlsPlaybackController.o ThreeControlsPlaybackController.cpp
 
-${OBJECTDIR}/main.o: main.cpp 
+${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -DUSE_WIRING_PI -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.cpp
@@ -133,7 +133,6 @@ ${OBJECTDIR}/main.o: main.cpp
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/semp3
 
 # Subprojects
 .clean-subprojects:
