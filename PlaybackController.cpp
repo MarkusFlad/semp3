@@ -434,7 +434,7 @@ void PlaybackController::playStatus (int framecount, int framesLeft,
     int framesPerSecond = _frameCountTotal /
         (static_cast<int>(secondsTotal) + 1);
     int titleStepSize = 1;
-    if (_numberOfFastPlayedTitles > 10) {
+    if (_numberOfFastPlayedTitles > 10 && _numberOfFastPlayedTitles <= 100) {
         titleStepSize = 10;
     } else if (_numberOfFastPlayedTitles > 100) {
         titleStepSize = 100;
