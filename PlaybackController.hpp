@@ -349,6 +349,7 @@ private:
     int _numberOfFastPlayedTitles;
     std::queue<int> _numbersToSay;
     boost::posix_time::ptime _fastPlayFactorUpdateTime;
+    bool _paused;
     bool _presentingAlbums;
     RebootSafeString _currentAlbumInfo;
     RebootSafeString _currentTitleInfo;

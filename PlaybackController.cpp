@@ -58,6 +58,7 @@ PlaybackController::PlaybackController (const path& albumsPath,
 , _fastBackwardsWaitsForJumpCompleted (false)
 , _numberOfFastPlayedTitles (0)
 , _fastPlayFactorUpdateTime (microsec_clock::local_time())
+, _paused (false)
 , _presentingAlbums (false) {
     for (auto albumMapping : _albumMap) {
         _albums.push_back (albumMapping.first);
@@ -285,6 +286,7 @@ void PlaybackController::sayNextNumber() {
 }
 bool PlaybackController::resume() {
     stopFastPlay();
+    _paused = false;
     _currentTitlePosition = getCurrentTitlePosition (_currentAlbum);
     if (_currentTitlePosition) {
         TitlePosition currentTitlePosition = _currentTitlePosition.get();
@@ -297,8 +299,12 @@ bool PlaybackController::resume() {
 }
 void PlaybackController::pause() {
     stopFastPlay();
-    _mp3Player.pause();
-    say (getCurrentTitleNumber());
+    if (_paused) {
+        resume();
+    } else {
+        _paused = true;
+        say (getCurrentTitleNumber());
+    }
 }
 bool PlaybackController::next (bool wrapAround) {
     stopFastPlay();
@@ -490,16 +496,18 @@ void PlaybackController::playingStopped (bool endOfSongReached) {
     }
     if (!_numbersToSay.empty()) {
         sayNextNumber();
-    } else if (_currentTitlePosition) {
-        TitlePosition currentTitlePosition = _currentTitlePosition.get();
-        _mp3Player.load(currentTitlePosition.getTitle());
-        if (_fastPlayFactor > 0) {
-            _fastForwardWaitsForLoadCompleted = true;
-        } else if (_fastPlayFactor < 0) {
-            _fastBackwardsWaitsForLoadCompleted = true;
+    } else if (!_paused && !_presentingAlbums) {
+        if (_fastPlayFactor == 0) {
+            next(false /* no wrap-around */);
+        } else {
+            TitlePosition currentTitlePosition = _currentTitlePosition.get();
+            _mp3Player.load(currentTitlePosition.getTitle());
+            if (_fastPlayFactor > 0) {
+                _fastForwardWaitsForLoadCompleted = true;
+            } else if (_fastPlayFactor < 0) {
+                _fastBackwardsWaitsForLoadCompleted = true;
+            }
         }
-    } else if (!_presentingAlbums && _fastPlayFactor == 0) {
-        next(false /* no wrap-around */);
     }
 }
 void PlaybackController::playingPaused() {
