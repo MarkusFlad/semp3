@@ -298,6 +298,7 @@ bool PlaybackController::resume() {
 void PlaybackController::pause() {
     stopFastPlay();
     _mp3Player.pause();
+    say (getCurrentTitleNumber());
 }
 bool PlaybackController::next (bool wrapAround) {
     stopFastPlay();
