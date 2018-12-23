@@ -56,6 +56,7 @@ PlaybackController::PlaybackController (const path& albumsPath,
 , _fastForwardWaitsForLoadCompleted (false)
 , _fastBackwardsWaitsForLoadCompleted (false)
 , _fastBackwardsWaitsForJumpCompleted (false)
+, _numberOfFastPlayedTitles (0)
 , _fastPlayFactorUpdateTime (microsec_clock::local_time())
 , _presentingAlbums (false) {
     for (auto albumMapping : _albumMap) {
@@ -149,7 +150,8 @@ optional<path> PlaybackController::getFirstTitle () const {
     }
     return boost::none;
 }
-optional<path> PlaybackController::getNextTitle (bool wrapAround) const {
+optional<path> PlaybackController::getNextTitle (int stepSize,
+                                                 bool wrapAround) const {
     if (_currentTitlePosition) {
         TitlePosition currentTitlePosition = _currentTitlePosition.get();
         auto itFoundInMap = _albumMap.find(_currentAlbum);
@@ -158,7 +160,11 @@ optional<path> PlaybackController::getNextTitle (bool wrapAround) const {
             auto itCurrent = find (mp3Files.begin(), mp3Files.end(),
                                    currentTitlePosition.getTitle());
             if (itCurrent != mp3Files.end()) {
-                itCurrent++;
+                int i=0;
+                while (i < stepSize && itCurrent != mp3Files.end()) {
+                    i++;
+                    itCurrent++;
+                }
                 if (wrapAround && itCurrent == mp3Files.end()) {
                     itCurrent = mp3Files.begin();
                 }
@@ -170,7 +176,7 @@ optional<path> PlaybackController::getNextTitle (bool wrapAround) const {
     }
     return boost::none;
 }
-optional<path> PlaybackController::getPreviousTitle () const {
+optional<path> PlaybackController::getPreviousTitle (int stepSize) const {
     if (_currentTitlePosition) {
         TitlePosition currentTitlePosition = _currentTitlePosition.get();
         auto itFoundInMap = _albumMap.find(_currentAlbum);
@@ -179,7 +185,11 @@ optional<path> PlaybackController::getPreviousTitle () const {
             auto itCurrent = find (mp3Files.begin(), mp3Files.end(),
                                    currentTitlePosition.getTitle());
             if (itCurrent != mp3Files.begin()) {
-                itCurrent--;
+                int i=0;
+                while (i < stepSize && itCurrent != mp3Files.begin()) {
+                    i++;
+                    itCurrent--;
+                }
                 return optional<path>(*itCurrent);
             }
         }
@@ -249,6 +259,7 @@ void PlaybackController::startFastPlay (int factor) {
         _fastForwardWaitsForLoadCompleted = false;
         _fastBackwardsWaitsForLoadCompleted = false;
         _fastBackwardsWaitsForJumpCompleted = false;
+        _numberOfFastPlayedTitles = 0;
         _numbersToSay = queue<int>();
         // Probably last frame has not been stored, therefore store for sure.
         setCurrentTitlePosition(_frameCountPlayed);
@@ -290,7 +301,7 @@ void PlaybackController::pause() {
 }
 bool PlaybackController::next (bool wrapAround) {
     stopFastPlay();
-    optional<path> nextTitle = getNextTitle(wrapAround);
+    optional<path> nextTitle = getNextTitle(1, wrapAround);
     if (nextTitle) {
         setCurrentTitlePosition (TitlePosition (nextTitle.get(), 0));
         _mp3Player.load (nextTitle.get());
@@ -304,7 +315,7 @@ bool PlaybackController::back() {
         _mp3Player.jumpToBegin();
         return true;
     } else {
-        optional<path> previousTitle = getPreviousTitle();
+        optional<path> previousTitle = getPreviousTitle(1);
         if (previousTitle) {
             setCurrentTitlePosition (TitlePosition (previousTitle.get(), 0));
             _mp3Player.load (previousTitle.get());
@@ -415,11 +426,18 @@ void PlaybackController::playStatus (int framecount, int framesLeft,
     float secondsTotal = seconds + secondsLeft;
     int framesPerSecond = _frameCountTotal /
         (static_cast<int>(secondsTotal) + 1);
+    int titleStepSize = 1;
+    if (_numberOfFastPlayedTitles > 10) {
+        titleStepSize = 10;
+    } else if (_numberOfFastPlayedTitles > 100) {
+        titleStepSize = 100;
+    }
     if (!_numbersToSay.empty()) {
         return;
     } else if (_fastForwardWaitsForLoadCompleted) {
         if (_mp3Player.isLoadCompleted()) {
             _fastForwardWaitsForLoadCompleted = false;
+            _numberOfFastPlayedTitles+=titleStepSize;
         } else {
             return;
         }
@@ -428,6 +446,7 @@ void PlaybackController::playStatus (int framecount, int framesLeft,
             _mp3Player.jumpTo(_frameCountTotal - framesPerSecond);
             _fastBackwardsWaitsForLoadCompleted = false;
             _fastBackwardsWaitsForJumpCompleted = true;
+            _numberOfFastPlayedTitles+=titleStepSize;
         }
         return;
     } else  if (_fastBackwardsWaitsForJumpCompleted) {
@@ -441,7 +460,8 @@ void PlaybackController::playStatus (int framecount, int framesLeft,
     int frameJump = framesPerEighthOfSecond * _fastPlayFactor;
     int nextFrameCount = framecount + frameJump;
     if (nextFrameCount > _frameCountTotal) {
-        optional<path> nextTitle = getNextTitle(false /* no wrap-around. */);
+        optional<path> nextTitle = getNextTitle(titleStepSize,
+                                                false /* no wrap-around. */);
         if (nextTitle) {
             TitlePosition nextTP = TitlePosition(nextTitle.get(), 0);
             setCurrentTitlePosition (nextTP);
@@ -451,7 +471,7 @@ void PlaybackController::playStatus (int framecount, int framesLeft,
             nextFrameCount = _frameCountTotal - framesPerSecond;
         }
     } else if (nextFrameCount < 0) {
-        optional<path> previousTitle = getPreviousTitle();
+        optional<path> previousTitle = getPreviousTitle(titleStepSize);
         if (previousTitle) {
             TitlePosition previousTP = TitlePosition(previousTitle.get(), 0);
             setCurrentTitlePosition (previousTP);

@@ -263,18 +263,22 @@ protected:
     /**
      * Get the title after the current title in the current album. If it is
      * the last title in the album and wrapAround is false or if there is no
-     * title at all return none. 
+     * title at all return none.
+     * @param stepSize The number of titles to be stepped over. If 1 is given
+     *                 just the next title is returned.
      * @param wrapAround The first title returned if the current title
      *                   is already the last title.
      * @return The next title or none if there is no next title.
      */
-    boost::optional<Path> getNextTitle (bool wrapAround) const;
+    boost::optional<Path> getNextTitle (int stepSize, bool wrapAround) const;
     /**
      * Get the title before the current title in the current album. If it is
      * the first title in the album or if there is no title at all return none. 
+     * @param stepSize The number of titles to be stepped over. If 1 is given
+     *                 just the previous title is returned.
      * @return The previous title or none if there is no previous title.
      */
-    boost::optional<Path> getPreviousTitle () const;
+    boost::optional<Path> getPreviousTitle (int stepSize) const;
     /**
      * Get if the current title is the last title in the current album.
      * @return True if it is the last title, false if not.
@@ -342,6 +346,7 @@ private:
     bool _fastForwardWaitsForLoadCompleted;
     bool _fastBackwardsWaitsForLoadCompleted;
     bool _fastBackwardsWaitsForJumpCompleted;
+    int _numberOfFastPlayedTitles;
     std::queue<int> _numbersToSay;
     boost::posix_time::ptime _fastPlayFactorUpdateTime;
     bool _presentingAlbums;
